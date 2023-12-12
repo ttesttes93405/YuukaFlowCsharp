@@ -11,15 +11,15 @@ namespace YuukaFlow
     {
 
         readonly Flowchart<TName, TPortId> _flowchart;
-        readonly Dictionary<TName, Func<TContext, Task<TPortId>>> _Implementations;
+        readonly Dictionary<TName, Func<TContext, Task<TPortId>>> _implementations;
         public string Name { get; init; }
 
         public event Action<FlowNode<TName, TPortId>, TPortId, FlowNode<TName, TPortId>> OnFlowNodeChanged;
 
-        public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, Func<TContext, Task<TPortId>>> Implementations)
+        public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, Func<TContext, Task<TPortId>>> implementations)
         {
             _flowchart = flowchart;
-            _Implementations = Implementations;
+            _implementations = implementations;
         }
 
         public async Task<TContext> Execute(TContext context)
@@ -30,15 +30,15 @@ namespace YuukaFlow
                 .ToDictionary(node => node.Name, node => node);
 
             var allFlowName = flowNodes.Select(node => node.Name).ToHashSet();
-            if (allFlowName.SetEquals(_Implementations.Keys) == false)
-                throw new Exception($"[YuukaFlow] Flow({Name}) implementation not fullmatch\n{nameof(allFlowName)}=[ {string.Join(", ", allFlowName)} ]\n{nameof(_Implementations)}.Keys = [ {string.Join(", ", _Implementations.Keys)} ]");
+            if (allFlowName.SetEquals(_implementations.Keys) == false)
+                throw new Exception($"[YuukaFlow] Flow({Name}) implementation not fullmatch\n{nameof(allFlowName)}=[ {string.Join(", ", allFlowName)} ]\n{nameof(_implementations)}.Keys = [ {string.Join(", ", _implementations.Keys)} ]");
 
             var currentNode = GetFlowNode(_flowchart.EntryNodeName);
             OnFlowNodeChanged?.Invoke(null, default, currentNode);
 
             while (true)
             {
-                if (_Implementations.TryGetValue(currentNode.Name, out var implementation) == false)
+                if (_implementations.TryGetValue(currentNode.Name, out var implementation) == false)
                     throw new Exception($"[YuukaFlow] Flow({Name}) implementation not found for node {currentNode.Name}");
 
                 TPortId outputPortId = default;
