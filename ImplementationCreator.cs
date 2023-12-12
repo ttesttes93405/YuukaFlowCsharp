@@ -8,7 +8,7 @@ using Codice.CM.SEIDInfo;
 namespace YuukaFlow
 {
 
-    public class ImplementationCreator<TPortId, TState>
+    public class ImplementationCreator<TPortId, TContext>
     {
 
         readonly TPortId defaultOutputPortId;
@@ -17,7 +17,17 @@ namespace YuukaFlow
             this.defaultOutputPortId = defaultOutputPortId;
         }
 
-        public Func<TState, Task<TPortId>> Create(Action<TState> implementation = null, TPortId portId = default)
+        public Func<TContext, Task<TPortId>> Create(Func<TContext, TPortId> implementation = null)
+        {
+            return context =>
+            {
+                implementation ??= _ => defaultOutputPortId;
+                var result = implementation .Invoke(context);
+                return Task.FromResult(result ?? defaultOutputPortId);
+            };
+        }
+
+        public Func<TContext, Task<TPortId>> Create(Action<TContext> implementation = null, TPortId portId = default)
         {
             return state =>
             {
@@ -26,17 +36,17 @@ namespace YuukaFlow
             };
         }
 
-        public Func<TState, Task<TPortId>> CreateTo(TPortId portId)
+        public Func<TContext, Task<TPortId>> CreateTo(TPortId portId)
         {
             return Create(null, portId);
         }
 
-        public Func<TState, Task<TPortId>> CreateToDefaultOutput(Action<TState> implementation)
+        public Func<TContext, Task<TPortId>> CreateToDefaultOutput(Action<TContext> implementation)
         {
             return Create(implementation, defaultOutputPortId);
         }
 
-        public Func<TState, Task<TPortId>> CreateTerminal()
+        public Func<TContext, Task<TPortId>> CreateTerminal()
         {
             return Create(null, defaultOutputPortId);
         }
