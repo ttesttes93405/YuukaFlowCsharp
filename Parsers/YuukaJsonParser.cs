@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -11,13 +12,13 @@ namespace YuukaFlow.Parser
     {
 
 
-        class FlowDocumentModel
+        class FlowchartModel
         {
             [JsonProperty("entryNodeName")]
             public string EntryNodeName { get; set; }
 
             [JsonProperty("flowNodes")]
-            public Dictionary<string, FlowNodeModel> FlowNodes { get; set; }
+            public Collection<FlowNodeModel> FlowNodes { get; set; }
         }
 
         class FlowNodeModel
@@ -32,40 +33,36 @@ namespace YuukaFlow.Parser
 
 
 
-        public FlowDocument<string, string> Deserialize(string json)
+        public Flowchart<string, string> Deserialize(string json)
         {
-            var flowModel = JsonConvert.DeserializeObject<FlowDocumentModel>(json);
+            var flowModel = JsonConvert.DeserializeObject<FlowchartModel>(json);
 
-            var flowDocument = new FlowDocument<string, string>()
+            var flowchart = new Flowchart<string, string>()
             {
                 EntryNodeName = flowModel.EntryNodeName,
-                FlowNodes = flowModel.FlowNodes?
-                    .Select(node => (
-                        key: node.Key,
-                        value: new FlowNode<string, string>(
-                            node.Value.Name,
-                            node.Value.OutputPorts
-                        )))
-                    .ToDictionary(v => v.key, v => v.value),
+                FlowNodes = new(flowModel.FlowNodes?
+                    .Select(node => new FlowNode<string, string>(
+                            node.Name,
+                            node.OutputPorts
+                        ))
+                    .ToList()),
             };
 
-            return flowDocument;
+            return flowchart;
         }
 
-        public string Serialize(FlowDocument<string, string> flowDoc)
+        public string Serialize(Flowchart<string, string> flowchart)
         {
-            var flowModel = new FlowDocumentModel()
+            var flowModel = new FlowchartModel()
             {
-                EntryNodeName = flowDoc.EntryNodeName,
-                FlowNodes = flowDoc.FlowNodes?
-                    .Select(node => (
-                        key: node.Key,
-                        value: new FlowNodeModel()
-                        {
-                            Name = node.Value.Name,
-                            OutputPorts = node.Value.OutputPorts
-                        }))
-                    .ToDictionary(v => v.key, v => v.value),
+                EntryNodeName = flowchart.EntryNodeName,
+                FlowNodes = new(flowchart.FlowNodes?
+                    .Select(node => new FlowNodeModel()
+                    {
+                        Name = node.Name,
+                        OutputPorts = node.OutputPorts
+                    })
+                    .ToList()),
             };
 
             var json = JsonConvert.SerializeObject(flowModel);

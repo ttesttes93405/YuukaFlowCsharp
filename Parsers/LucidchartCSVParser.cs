@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace YuukaFlow.Parser
 {
@@ -53,7 +54,7 @@ namespace YuukaFlow.Parser
         }
 
 
-        public Dictionary<string, FlowDocument<string, string>> Parse(string csvContent)
+        public Dictionary<string, Flowchart<string, string>> Parse(string csvContent)
         {
             var flowDatas = ParseCSVToItemList<FlowData>(csvContent);
 
@@ -63,7 +64,7 @@ namespace YuukaFlow.Parser
                     pageId: flowDatas.FirstOrDefault(flowData => flowData.Id == d.Key)?.pagename ?? string.Empty,
                     flowDatas: d.ToList()
                 ))
-                .ToDictionary(d => d.pageId, d => ConvertListItemToFlowDocument(d.flowDatas))
+                .ToDictionary(d => d.pageId, d => ConvertListItemToFlowchart(d.flowDatas))
                 .Where((d) => string.IsNullOrEmpty(d.Key) == false) // 去除沒有pagename的元素 包含page本身
                 .ToDictionary(d => d.Key, d => d.Value);
 
@@ -71,7 +72,7 @@ namespace YuukaFlow.Parser
         }
 
 
-        FlowDocument<string, string> ConvertListItemToFlowDocument(List<FlowData> flowDatas)
+        Flowchart<string, string> ConvertListItemToFlowchart(List<FlowData> flowDatas)
         {
 
             string entryNodeName = null;
@@ -98,7 +99,7 @@ namespace YuukaFlow.Parser
                 .Select((nodeType) => nodeType.flowData)
                 .ToList();
 
-            var flowNodes = nodes
+            var flowNodes = new Collection<FlowNode<string, string>>(nodes
                  .Select(flowData =>
                  {
                      var outputPorts = new Dictionary<string, string>();
@@ -120,10 +121,10 @@ namespace YuukaFlow.Parser
                      }
                      return new FlowNode<string, string>(GetNodeName(flowData), outputPorts);
                  })
-                 .ToDictionary(node => node.Name, node => node);
+                 .ToList());
 
 
-            return new FlowDocument<string, string>()
+            return new Flowchart<string, string>()
             {
                 EntryNodeName = entryNodeName,
                 FlowNodes = flowNodes

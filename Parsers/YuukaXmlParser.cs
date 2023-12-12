@@ -1,7 +1,7 @@
 using System;
 using System.Xml;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace YuukaFlow.Parser
 {
@@ -9,7 +9,7 @@ namespace YuukaFlow.Parser
     public class YuukaXmlParser
     {
 
-        public FlowDocument<string, string> Parse(string xmlText)
+        public Flowchart<string, string> Parse(string xmlText)
         {
             XmlDocument XmlDoc = new();
             XmlDoc.LoadXml(xmlText);
@@ -23,7 +23,7 @@ namespace YuukaFlow.Parser
                 .SelectNodes("flow-node")
                 .Cast<XmlNode>();
 
-            var flowNodes = flowXmlNodes
+            var flowNodes = new Collection<FlowNode<string, string>>(flowXmlNodes
                 .Select(xmlNode =>
                 {
                     var outputPorts = xmlNode
@@ -46,9 +46,9 @@ namespace YuukaFlow.Parser
 
                     return result;
                 })
-                .ToDictionary(node => node.Name, node => node);
+                .ToList());
 
-            var entryMNode = flowNodes[entryNodeName];
+            var entryMNode = flowNodes.First(node => node.Name == entryNodeName);
 
             return new()
             {
