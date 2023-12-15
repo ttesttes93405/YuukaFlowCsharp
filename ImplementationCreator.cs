@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Codice.CM.SEIDInfo;
 
 namespace YuukaFlow
 {
@@ -22,7 +21,7 @@ namespace YuukaFlow
             return context =>
             {
                 implementation ??= _ => defaultOutputPortId;
-                var result = implementation .Invoke(context);
+                var result = implementation.Invoke(context);
                 return Task.FromResult(result ?? defaultOutputPortId);
             };
         }
