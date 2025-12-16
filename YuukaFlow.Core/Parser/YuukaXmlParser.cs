@@ -3,9 +3,8 @@ using System.Xml;
 using System.Linq;
 using System.Collections.ObjectModel;
 
-namespace YuukaFlow.Parser
+namespace YuukaFlow.Core.Parser
 {
-
     public class YuukaXmlParser
     {
 
@@ -50,11 +49,10 @@ namespace YuukaFlow.Parser
 
             var entryMNode = flowNodes.First(node => node.Name == entryNodeName);
 
-            return new()
-            {
-                EntryNodeName = entryNodeName,
-                FlowNodes = flowNodes
-            };
+            return new(
+                entryNodeName: entryNodeName,
+                flowNodes: flowNodes
+            );
 
 
         }

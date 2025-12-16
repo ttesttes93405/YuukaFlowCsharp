@@ -5,19 +5,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace YuukaFlow
+namespace YuukaFlow.Core
 {
     public class FlowExecutor<TContext, TName, TPortId> where TContext : class
     {
 
         readonly Flowchart<TName, TPortId> _flowchart;
         readonly Dictionary<TName, Func<TContext, Task<TPortId>>> _implementations;
-        public string Name { get; init; }
+        public string? Name { get; init; }
 
-        public event Action<FlowNode<TName, TPortId>, TPortId, FlowNode<TName, TPortId>> OnFlowNodeChanged;
+        public event Action<FlowNode<TName, TPortId>?, TPortId?, FlowNode<TName, TPortId>?>? OnFlowNodeChanged;
 
         public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, Func<TContext, Task<TPortId>>> implementations)
         {
+            Name = null;
+            OnFlowNodeChanged = null;
             _flowchart = flowchart;
             _implementations = implementations;
         }
@@ -33,15 +35,15 @@ namespace YuukaFlow
             if (allFlowName.SetEquals(_implementations.Keys) == false)
                 throw new Exception($"[YuukaFlow] Flow({Name}) implementation not fullmatch\n{nameof(allFlowName)}=[ {string.Join(", ", allFlowName)} ]\n{nameof(_implementations)}.Keys = [ {string.Join(", ", _implementations.Keys)} ]");
 
-            var currentNode = GetFlowNode(_flowchart.EntryNodeName);
+            var currentNode = GetFlowNode(_flowchart.EntryNodeName) ?? throw new Exception($"[YuukaFlow] Flow({Name}) entry node {_flowchart.EntryNodeName} not found");
             OnFlowNodeChanged?.Invoke(null, default, currentNode);
 
             while (true)
             {
-                if (_implementations.TryGetValue(currentNode.Name, out var implementation) == false)
+                if (_implementations.TryGetValue(currentNode!.Name, out var implementation) == false)
                     throw new Exception($"[YuukaFlow] Flow({Name}) implementation not found for node {currentNode.Name}");
 
-                TPortId outputPortId = default;
+                TPortId? outputPortId = default;
                 try
                 {
                     outputPortId = await implementation(context);

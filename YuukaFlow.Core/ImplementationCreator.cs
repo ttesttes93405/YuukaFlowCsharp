@@ -1,10 +1,8 @@
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace YuukaFlow
+namespace YuukaFlow.Core
 {
 
     public class ImplementationCreator<TPortId, TContext>
@@ -16,7 +14,7 @@ namespace YuukaFlow
             this.defaultOutputPortId = defaultOutputPortId;
         }
 
-        public Func<TContext, Task<TPortId>> Create(Func<TContext, TPortId> implementation = null)
+        public Func<TContext, Task<TPortId>> Create(Func<TContext, TPortId>? implementation = null)
         {
             return context =>
             {
@@ -26,7 +24,7 @@ namespace YuukaFlow
             };
         }
 
-        public Func<TContext, Task<TPortId>> Create(Action<TContext> implementation = null, TPortId portId = default)
+        public Func<TContext, Task<TPortId>> Create(Action<TContext>? implementation = null, TPortId? portId = default)
         {
             return state =>
             {

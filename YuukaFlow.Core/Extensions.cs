@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-namespace YuukaFlow
+namespace YuukaFlow.Core
 {
     public static class Extensions
     {
@@ -34,7 +34,7 @@ namespace YuukaFlow
                     .Append(indentString).Append(INDENT_UNIT).AppendLine("{");
 
 
-                foreach (var pair in flowNode.OutputPorts)
+                foreach (var pair in flowNode.OutputPorts!)
                 {
                     var portId = pair.Key;
                     var toName = pair.Value;

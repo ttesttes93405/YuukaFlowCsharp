@@ -3,31 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
 
-namespace YuukaFlow.Parser
+namespace YuukaFlow.Core.Parser
 {
-
-
-
     public class LucidchartCSVParser
     {
         public record FlowData
         {
             public int Id { get; init; }
-            public string Name { get; init; }
-            // public string ShapeLibrary { get; init; }
+            public string? Name { get; init; }
             public int PageID { get; init; }
-            // public string ContainedBy { get; init; }
-            // public string Group { get; init; }
-            public string LineSource { get; init; }
-            public string LineDestination { get; init; }
-            // public string SourceArrow { get; init; }
-            // public string DestinationArrow { get; init; }
-            // public string Status { get; init; }
-            // public string TextArea1 { get; init; }
-            // public string Comments { get; init; }
-            public string nodename { get; init; }
-            public string portname { get; init; }
-            public string pagename { get; init; }
+            public string? LineSource { get; init; }
+            public string? LineDestination { get; init; }
+            public string? nodename { get; init; }
+            public string? portname { get; init; }
+            public string? pagename { get; init; }
         }
         enum LucidchartNodeType
         {
@@ -39,10 +28,11 @@ namespace YuukaFlow.Parser
             Other,
         }
 
-        LucidchartNodeType GetNodeType(string name)
+        LucidchartNodeType GetNodeType(string? name)
         {
             return name switch
             {
+                null => throw new Exception("[YuukaFlow] LucidchartCSVParser GetNodeType: name is null"),
                 "Terminator" => LucidchartNodeType.TerminatorBlock,
                 "Decision" => LucidchartNodeType.Decision,
                 "Process" => LucidchartNodeType.Process,
@@ -75,7 +65,7 @@ namespace YuukaFlow.Parser
         Flowchart<string, string> ConvertListItemToFlowchart(List<FlowData> flowDatas)
         {
 
-            string entryNodeName = null;
+            string? entryNodeName = null;
             List<FlowData> nodes = new();
             List<FlowData> lines = new();
 
@@ -102,36 +92,30 @@ namespace YuukaFlow.Parser
             var flowNodes = new Collection<FlowNode<string, string>>(nodes
                  .Select(flowData =>
                  {
-                     var outputPorts = new Dictionary<string, string>();
+                     var outputPorts = lines
+                        .Where(lines => lines.LineSource == flowData.Id.ToString())
+                        .Select(port =>
+                        {
+                            var key = port.portname ?? string.Empty;
+                            var value = nodes.First((node) => node.Id.ToString() == port.LineDestination).nodename;
+                            if (value == null)
+                                throw new Exception($"[YuukaFlow] LucidchartCSVParser ConvertListItemToFlowchart: LineDestination {port.LineDestination} not found");
+                            return (key, value);
+                        })
+                        .ToDictionary(t => t.key, t => t.value);
 
-                     var ports = lines.Where((lines) => lines.LineSource == flowData.Id.ToString()).ToList();
-
-                     if (ports.Count > 0)
-                     {
-                         ports.ForEach((port) =>
-                         {
-                             var value = nodes.First((node) => node.Id.ToString() == port.LineDestination).nodename;
-                             var key = port.portname ?? string.Empty;
-                             outputPorts.Add(key, value);
-                         });
-                     }
-                     else
-                     {
-                         outputPorts = null;
-                     }
                      return new FlowNode<string, string>(GetNodeName(flowData), outputPorts);
                  })
                  .ToList());
 
 
-            return new Flowchart<string, string>()
-            {
-                EntryNodeName = entryNodeName,
-                FlowNodes = flowNodes
-            };
+            return new Flowchart<string, string>(
+                entryNodeName: entryNodeName,
+                flowNodes: flowNodes
+            );
 
 
-            string GetNodeName(FlowData flowData)
+            static string GetNodeName(FlowData flowData)
             {
                 if (string.IsNullOrEmpty(flowData.nodename))
                     return flowData.Id.ToString();

@@ -1,12 +1,10 @@
-
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace YuukaFlow.Parser
+namespace YuukaFlow.Core.Parser
 {
     public class YuukaJsonParser
     {
@@ -15,19 +13,19 @@ namespace YuukaFlow.Parser
         class FlowchartModel
         {
             [JsonProperty("entryNodeName")]
-            public string EntryNodeName { get; set; }
+            public string? EntryNodeName { get; set; }
 
             [JsonProperty("flowNodes")]
-            public Collection<FlowNodeModel> FlowNodes { get; set; }
+            public Collection<FlowNodeModel>? FlowNodes { get; set; }
         }
 
         class FlowNodeModel
         {
             [JsonProperty("name")]
-            public string Name { get; set; }
+            public string? Name { get; set; }
 
             [JsonProperty("outputPorts")]
-            public Dictionary<string, string> OutputPorts { get; set; }
+            public Dictionary<string, string>? OutputPorts { get; set; }
         }
 
 
@@ -37,16 +35,18 @@ namespace YuukaFlow.Parser
         {
             var flowModel = JsonConvert.DeserializeObject<FlowchartModel>(json);
 
-            var flowchart = new Flowchart<string, string>()
-            {
-                EntryNodeName = flowModel.EntryNodeName,
-                FlowNodes = new(flowModel.FlowNodes?
+            if (flowModel == null)
+                throw new Exception("[YuukaFlow] Failed to deserialize flowchart json");
+
+            var flowchart = new Flowchart<string, string>(
+                entryNodeName: flowModel.EntryNodeName!,
+                flowNodes: new(flowModel.FlowNodes?
                     .Select(node => new FlowNode<string, string>(
-                            node.Name,
+                            node.Name!,
                             node.OutputPorts
                         ))
-                    .ToList()),
-            };
+                    .ToList())
+            );
 
             return flowchart;
         }
