@@ -47,7 +47,7 @@ namespace YuukaFlow.Core.Parser
                 })
                 .ToList());
 
-            var entryMNode = flowNodes.First(node => node.Name == entryNodeName);
+            var entryMNode = flowNodes.FirstOrDefault(node => node.Name == entryNodeName) ?? throw new Exception("[YuukaFlow] YuukaXmlParser Parse: Entry node not found in flow nodes");
 
             return new(
                 entryNodeName: entryNodeName,

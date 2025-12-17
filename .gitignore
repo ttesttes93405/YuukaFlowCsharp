@@ -1,5 +1,10 @@
 
+# Unity
+YuukaFlow.Unity/*
+!YuukaFlow.Unity/Assets/
+!YuukaFlow.Unity/Assets/**
 
+.[Pp]layground/
 .DS_Store
 
 */bin/
