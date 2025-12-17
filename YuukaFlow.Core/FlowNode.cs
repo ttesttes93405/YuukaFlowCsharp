@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace YuukaFlow.Core
 {
@@ -23,6 +24,26 @@ namespace YuukaFlow.Core
         {
             Name = name;
             OutputPorts = outputPorts;
+        }
+
+        public override string ToString()
+        {
+            if (OutputPorts == null || OutputPorts.Count == 0)
+                return $"FlowNode({Name})";
+
+            if (OutputPorts.Count == 1)
+            {
+                var kv = OutputPorts.First();
+                return
+                    $"FlowNode({Name}) -|{kv.Key}|-> {kv.Value}";
+            }
+
+            return
+                $"FlowNode({Name})\n" +
+                $"{{\n" +
+                $"{string.Join(", ", OutputPorts.Select(kv => $"  -|{kv.Key}|-> {kv.Value}"))}\n" +
+                $"}}"
+                ;
         }
     }
 

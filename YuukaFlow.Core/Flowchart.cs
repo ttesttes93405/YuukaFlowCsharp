@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace YuukaFlow.Core
 {
@@ -9,11 +10,25 @@ namespace YuukaFlow.Core
 
         public Collection<FlowNode<TName, TPortId>> FlowNodes { get; init; }
 
-        private Flowchart() => throw new System.Exception("Flowchart must have an entry node and flow nodes");
+        private Flowchart() => throw new System.Exception("No parameter Flowchart constructor is not allowed");
+
         public Flowchart(TName entryNodeName, Collection<FlowNode<TName, TPortId>> flowNodes)
         {
             EntryNodeName = entryNodeName;
             FlowNodes = flowNodes;
+        }
+
+        public override string ToString()
+        {
+            return
+                $"Flowchart\n" +
+                $"{{\n" +
+                $"  EntryNodeName={EntryNodeName},\n" +
+                $"  FlowNodes=[\n" +
+                $"{string.Join(",\n", FlowNodes.Select(f => $"    {f}"))}\n" +
+                $"  ]\n" +
+                $"}}"
+                ;
         }
     }
 
