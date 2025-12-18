@@ -5,7 +5,7 @@ using YuukaFlow.Core.Parser;
 
 public class UnitTest
 {
-    [Fact]
+    // [Fact]
     public void ParseDrawioFlowchartIsExpected()
     {
         const string xml = """

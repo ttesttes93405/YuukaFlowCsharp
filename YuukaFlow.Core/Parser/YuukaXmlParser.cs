@@ -1,7 +1,6 @@
 using System;
 using System.Xml;
 using System.Linq;
-using System.Collections.ObjectModel;
 
 namespace YuukaFlow.Core.Parser
 {
@@ -22,7 +21,7 @@ namespace YuukaFlow.Core.Parser
                 .SelectNodes("flow-node")
                 .Cast<XmlNode>();
 
-            var flowNodes = new Collection<FlowNode<string, string>>(flowXmlNodes
+            var flowNodes = flowXmlNodes
                 .Select(xmlNode =>
                 {
                     var outputPorts = xmlNode
@@ -42,7 +41,7 @@ namespace YuukaFlow.Core.Parser
 
                     return result;
                 })
-                .ToList());
+                .ToArray();
 
             var entryMNode = flowNodes.FirstOrDefault(node => node.Name == entryNodeName) ?? throw new Exception("[YuukaFlow] YuukaXmlParser Parse: Entry node not found in flow nodes");
 

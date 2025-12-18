@@ -1,6 +1,6 @@
 {
     "name": "com.owensun.yuuka-flow",
-    "displayName": "YuukaFlow",
+    "displayName": "Yuuka Flow",
     "author": {
         "name": "Owen Sun"
     },
@@ -11,7 +11,5 @@
         ""
     ],
     "license": "MIT",
-    "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.0.2"
-    }
+    "dependencies": {}
 }

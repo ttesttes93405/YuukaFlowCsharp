@@ -1,5 +1,5 @@
-using System.Collections.ObjectModel;
-using static YuukaFlow.Core.Extensions;
+using static YuukaFlow.Core.Extensions.PersistentExtensions;
+using static YuukaFlow.Core.Extensions.StringExtensions;
 
 namespace YuukaFlow.Core
 {
@@ -9,11 +9,11 @@ namespace YuukaFlow.Core
         public string Name { get; init; }
         public TName EntryNodeName { get; init; }
 
-        public Collection<FlowNode<TName, TPortId>> FlowNodes { get; init; }
+        public FlowNode<TName, TPortId>[] FlowNodes { get; init; }
 
         private Flowchart() => throw new System.Exception("No parameter Flowchart constructor is not allowed");
 
-        public Flowchart(TName entryNodeName, Collection<FlowNode<TName, TPortId>> flowNodes)
+        public Flowchart(TName entryNodeName, FlowNode<TName, TPortId>[] flowNodes)
         {
             Name = "";
             EntryNodeName = entryNodeName;
@@ -30,7 +30,7 @@ namespace YuukaFlow.Core
             return CombinePersistentCode(
                 GetStringPersistentCode(Name),
                 GetObjectPersistentCode(EntryNodeName),
-                GetCollectionPersistentCode(FlowNodes)
+                GetArrayPersistentCode(FlowNodes)
             );
         }
 

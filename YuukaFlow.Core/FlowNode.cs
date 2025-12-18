@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using static YuukaFlow.Core.Extensions;
+using static YuukaFlow.Core.Extensions.PersistentExtensions;
+using static YuukaFlow.Core.Extensions.StringExtensions;
 
 namespace YuukaFlow.Core
 {
@@ -13,7 +14,19 @@ namespace YuukaFlow.Core
     public record FlowNode<TName, TPortId> : IPersistent
     {
         public TName Name { get; init; }
-        public Dictionary<TPortId, TName>? OutputPorts { get; private set; }
+        internal Dictionary<TPortId, TName>? OutputPorts { get; private set; }
+
+        public bool HasOutputPorts => OutputPorts != null && OutputPorts.Count > 0;
+
+        public bool TryGetNextNodeName(TPortId portId, out TName nextNode)
+        {
+            if (OutputPorts != null && OutputPorts.TryGetValue(portId, out nextNode))
+            {
+                return true;
+            }
+            nextNode = default!;
+            return false;
+        }
 
         private FlowNode() => throw new Exception("FlowNode must have a name");
 

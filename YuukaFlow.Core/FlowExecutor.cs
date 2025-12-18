@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +9,12 @@ namespace YuukaFlow.Core
     {
 
         readonly Flowchart<TName, TPortId> _flowchart;
-        readonly Dictionary<TName, Func<TContext, Task<TPortId>>> _implementations;
+        readonly Dictionary<TName, Func<TContext, ValueTask<TPortId>>> _implementations;
         public string? Name { get; init; }
 
         public event Action<FlowNode<TName, TPortId>?, TPortId?, FlowNode<TName, TPortId>?>? OnFlowNodeChanged;
 
-        public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, Func<TContext, Task<TPortId>>> implementations)
+        public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, Func<TContext, ValueTask<TPortId>>> implementations)
         {
             Name = null;
             OnFlowNodeChanged = null;
@@ -24,7 +22,7 @@ namespace YuukaFlow.Core
             _implementations = implementations;
         }
 
-        public async Task<TContext> Execute(TContext context)
+        public async ValueTask<TContext> Execute(TContext context)
         {
             var flowNodes = _flowchart.FlowNodes;
 
@@ -43,27 +41,29 @@ namespace YuukaFlow.Core
                 if (_implementations.TryGetValue(currentNode!.Name, out var implementation) == false)
                     throw new Exception($"[YuukaFlow] Flow({Name}) implementation not found for node {currentNode.Name}");
 
-                TPortId? outputPortId = default;
+                if (implementation == null)
+                    throw new Exception($"[YuukaFlow] Flow({Name}) implementation is null for node {currentNode.Name}");
+
                 try
                 {
-                    outputPortId = await implementation(context);
+                    TPortId? outputPortId = await implementation(context);
+                    if (currentNode.HasOutputPorts == false)
+                    {
+                        break;
+                    }
+
+                    if (currentNode.TryGetNextNodeName(outputPortId, out var nextNodeName) == false)
+                        throw new Exception($"[YuukaFlow] Flow({Name}) Output port {outputPortId} not found for node {currentNode.Name}");
+
+                    var prevNode = currentNode;
+                    currentNode = GetFlowNode(nextNodeName);
+
+                    OnFlowNodeChanged?.Invoke(prevNode, outputPortId, currentNode);
                 }
                 catch (Exception e)
                 {
                     throw new Exception($"[YuukaFlow] Flow({Name}) implementation error for node {currentNode.Name}", e);
                 }
-
-                if (currentNode.OutputPorts == null || currentNode.OutputPorts.Count == 0)
-                {
-                    break;
-                }
-
-                if (currentNode.OutputPorts.TryGetValue(outputPortId, out var nextNodeName) == false)
-                    throw new Exception($"[YuukaFlow] Flow({Name}) Output port {outputPortId} not found for node {currentNode.Name}");
-
-                var prevNode = currentNode;
-                currentNode = GetFlowNode(nextNodeName);
-                OnFlowNodeChanged?.Invoke(prevNode, outputPortId, currentNode);
             }
 
             return context;

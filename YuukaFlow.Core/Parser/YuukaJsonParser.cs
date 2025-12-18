@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -16,7 +15,7 @@ namespace YuukaFlow.Core.Parser
             public string? EntryNodeName { get; set; }
 
             [JsonProperty("flowNodes")]
-            public Collection<FlowNodeModel>? FlowNodes { get; set; }
+            public FlowNodeModel[]? FlowNodes { get; set; }
         }
 
         class FlowNodeModel
@@ -38,14 +37,16 @@ namespace YuukaFlow.Core.Parser
             if (flowModel == null)
                 throw new Exception("[YuukaFlow] Failed to deserialize flowchart json");
 
+            flowModel.FlowNodes ??= Array.Empty<FlowNodeModel>();
+
             var flowchart = new Flowchart<string, string>(
                 entryNodeName: flowModel.EntryNodeName!,
-                flowNodes: new(flowModel.FlowNodes?
+                flowNodes: flowModel.FlowNodes
                     .Select(node => new FlowNode<string, string>(
                             node.Name!,
                             node.OutputPorts.Select(port => (portId: port.Key, targetNode: port.Value)).ToArray()
                         ))
-                    .ToList())
+                    .ToArray()
             );
 
             return flowchart;
@@ -56,13 +57,13 @@ namespace YuukaFlow.Core.Parser
             var flowModel = new FlowchartModel()
             {
                 EntryNodeName = flowchart.EntryNodeName,
-                FlowNodes = new(flowchart.FlowNodes?
+                FlowNodes = flowchart.FlowNodes?
                     .Select(node => new FlowNodeModel()
                     {
                         Name = node.Name,
                         OutputPorts = node.OutputPorts
                     })
-                    .ToList()),
+                    .ToArray(),
             };
 
             var json = JsonConvert.SerializeObject(flowModel);

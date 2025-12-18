@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml;
 
@@ -8,10 +7,10 @@ namespace YuukaFlow.Core.Parser
 {
     public class DrawioParser
     {
-
+        const string ENTRY_NODE_ATTRIBUTE = "entry-node";
         const string NODE_NAME_ATTRIBUTE = "node-name";
         const string PORT_NAME_ATTRIBUTE = "port-name";
-        const string ENTRY_NODE_ATTRIBUTE = "entry-node";
+
 
         readonly struct Node<TName>
         {
@@ -37,16 +36,17 @@ namespace YuukaFlow.Core.Parser
             }
         }
 
-        public static Flowchart<TName, TPortId>[] Deserialize<TName, TPortId>(string xmlText, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+
+        public static Flowchart<TName, TPortId>[] Deserialize<TName, TPortId>(string xmlText, Func<string, TName> nameDeserializer, Func<string, TPortId> portIdDeserializer)
         {
             if (xmlText == null)
                 throw new ArgumentNullException(nameof(xmlText));
 
-            if (nameHandler == null)
-                throw new ArgumentNullException(nameof(nameHandler));
+            if (nameDeserializer == null)
+                throw new ArgumentNullException(nameof(nameDeserializer));
 
-            if (portIdHandler == null)
-                throw new ArgumentNullException(nameof(portIdHandler));
+            if (portIdDeserializer == null)
+                throw new ArgumentNullException(nameof(portIdDeserializer));
 
             XmlDocument XmlDoc = new();
             XmlDoc.LoadXml(xmlText);
@@ -56,20 +56,20 @@ namespace YuukaFlow.Core.Parser
             return root
                 .SelectNodes("diagram")
                 .Cast<XmlElement>()
-                .Select(diagram => ParseDiagramElement<TName, TPortId>(diagram, nameHandler, portIdHandler))
+                .Select(diagram => ParseDiagramElement<TName, TPortId>(diagram, nameDeserializer, portIdDeserializer))
                 .ToArray();
         }
 
-        public static Flowchart<TName, TPortId> DeserializeFirstDiagram<TName, TPortId>(string xmlText, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+        public static Flowchart<TName, TPortId> DeserializeFirstDiagram<TName, TPortId>(string xmlText, Func<string, TName> nameDeserializer, Func<string, TPortId> portIdDeserializer)
         {
             if (xmlText == null)
                 throw new ArgumentNullException(nameof(xmlText));
 
-            if (nameHandler == null)
-                throw new ArgumentNullException(nameof(nameHandler));
+            if (nameDeserializer == null)
+                throw new ArgumentNullException(nameof(nameDeserializer));
 
-            if (portIdHandler == null)
-                throw new ArgumentNullException(nameof(portIdHandler));
+            if (portIdDeserializer == null)
+                throw new ArgumentNullException(nameof(portIdDeserializer));
 
             XmlDocument XmlDoc = new();
             XmlDoc.LoadXml(xmlText);
@@ -79,7 +79,7 @@ namespace YuukaFlow.Core.Parser
             if (root.SelectSingleNode("diagram") is XmlElement diagram == false)
                 throw new Exception("[YuukaFlow] DrawioParser DeserializeFirstDiagram: No diagram element found in drawio xml");
 
-            return ParseDiagramElement<TName, TPortId>(diagram, nameHandler, portIdHandler);
+            return ParseDiagramElement<TName, TPortId>(diagram, nameDeserializer, portIdDeserializer);
         }
 
         public static Flowchart<TName, TPortId> ParseDiagramElement<TName, TPortId>(XmlElement diagram, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
@@ -164,7 +164,7 @@ namespace YuukaFlow.Core.Parser
                 )
                 .ToHashSet();
 
-            var flowNodes = new Collection<FlowNode<TName, TPortId>>(nodes.Values
+            var flowNodes = nodes.Values
                 .Where(node => includingNodeIds.Contains(node.Id))
                 .Select(node =>
                 {
@@ -176,7 +176,7 @@ namespace YuukaFlow.Core.Parser
 
                     return new FlowNode<TName, TPortId>(node.Name, outputPorts);
                 })
-                .ToList());
+                .ToArray();
 
             return new Flowchart<TName, TPortId>(
                 entryNodeName: entryNode.Value.Name,
@@ -191,8 +191,8 @@ namespace YuukaFlow.Core.Parser
         {
             return DeserializeFirstDiagram<string, string>(
                 xmlText,
-                nameHandler: StringToString,
-                portIdHandler: StringToString
+                nameDeserializer: StringToString,
+                portIdDeserializer: StringToString
             );
 
             static string StringToString(string str) => str;

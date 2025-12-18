@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.ObjectModel;
 
 namespace YuukaFlow.Core.Parser
 {
@@ -89,7 +88,7 @@ namespace YuukaFlow.Core.Parser
                 .Select((nodeType) => nodeType.flowData)
                 .ToList();
 
-            var flowNodes = new Collection<FlowNode<string, string>>(nodes
+            var flowNodes = nodes
                  .Select(flowData =>
                  {
                      var outputPorts = lines
@@ -106,7 +105,7 @@ namespace YuukaFlow.Core.Parser
 
                      return new FlowNode<string, string>(GetNodeName(flowData), outputPorts);
                  })
-                 .ToList());
+                 .ToArray();
 
 
             return new Flowchart<string, string>(
