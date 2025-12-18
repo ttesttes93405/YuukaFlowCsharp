@@ -16,8 +16,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
-  <Target Name="CopyToUnity" AfterTargets="Build">
-    <Copy SourceFiles="$(OutputPath)/YuukaFlow.Core.dll" DestinationFolder="$(SolutionDir)/YuukaFlow.Unity/Core/" />
+  <Target Name="CopyToUnity" AfterTargets="Build" Condition="'$(SkipCopyDll)' != 'true'">
+    <Copy
+      SourceFiles="$(OutputPath)/YuukaFlow.Core.dll"
+      DestinationFolder="$(SolutionDir)/YuukaFlow.Unity/Core/"
+      SkipUnchangedFiles="true"
+    />
   </Target>
 
 

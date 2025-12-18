@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using static YuukaFlow.Core.Extensions;
 
 namespace YuukaFlow.Core
 {
@@ -8,7 +8,7 @@ namespace YuukaFlow.Core
         public FlowNode(string name, Dictionary<string, string>? outputPorts = null) : base(name, outputPorts) { }
     }
 
-    public record FlowNode<TName, TPortId>
+    public record FlowNode<TName, TPortId> : IPersistent
     {
         public TName Name { get; init; }
         public Dictionary<TPortId, TName>? OutputPorts { get; init; }
@@ -28,23 +28,17 @@ namespace YuukaFlow.Core
 
         public override string ToString()
         {
-            if (OutputPorts == null || OutputPorts.Count == 0)
-                return $"FlowNode({Name})";
-
-            if (OutputPorts.Count == 1)
-            {
-                var kv = OutputPorts.First();
-                return
-                    $"FlowNode({Name}) -|{kv.Key}|-> {kv.Value}";
-            }
-
-            return
-                $"FlowNode({Name})\n" +
-                $"{{\n" +
-                $"{string.Join(", ", OutputPorts.Select(kv => $"  -|{kv.Key}|-> {kv.Value}"))}\n" +
-                $"}}"
-                ;
+            return this.BuildString(new System.Text.StringBuilder()).ToString();
         }
+        public int GetPersistentCode()
+        {
+            return CombinePersistentCode(
+                GetObjectPersistentCode(Name),
+                GetDictionaryPersistentCode(OutputPorts)
+            );
+        }
+
+        public override int GetHashCode() => GetPersistentCode();
     }
 
 }

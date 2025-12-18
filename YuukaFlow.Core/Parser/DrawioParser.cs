@@ -37,7 +37,7 @@ namespace YuukaFlow.Core.Parser
             }
         }
 
-        public static Flowchart<TName, TPortId> Deserialize<TName, TPortId>(string xmlText, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+        public static Flowchart<TName, TPortId>[] Deserialize<TName, TPortId>(string xmlText, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
         {
             if (xmlText == null)
                 throw new ArgumentNullException(nameof(xmlText));
@@ -53,15 +53,51 @@ namespace YuukaFlow.Core.Parser
 
             var root = XmlDoc.DocumentElement;
 
-            var diagrams = root.SelectNodes("diagram");
+            return root
+                .SelectNodes("diagram")
+                .Cast<XmlElement>()
+                .Select(diagram => ParseDiagramElement<TName, TPortId>(diagram, nameHandler, portIdHandler))
+                .ToArray();
+        }
 
-            if (diagrams.Count == 0)
-                throw new Exception("[YuukaFlow] DrawioParser Deserialize: No diagram found in drawio xml");
+        public static Flowchart<TName, TPortId> DeserializeFirstDiagram<TName, TPortId>(string xmlText, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+        {
+            if (xmlText == null)
+                throw new ArgumentNullException(nameof(xmlText));
 
-            if (diagrams.Count > 1)
-                throw new Exception("[YuukaFlow] DrawioParser Deserialize: Multiple diagrams found in drawio xml, only one diagram is supported");
+            if (nameHandler == null)
+                throw new ArgumentNullException(nameof(nameHandler));
 
-            var diagram = diagrams[0];
+            if (portIdHandler == null)
+                throw new ArgumentNullException(nameof(portIdHandler));
+
+            XmlDocument XmlDoc = new();
+            XmlDoc.LoadXml(xmlText);
+
+            var root = XmlDoc.DocumentElement;
+
+            if (root.SelectSingleNode("diagram") is XmlElement diagram == false)
+                throw new Exception("[YuukaFlow] DrawioParser DeserializeFirstDiagram: No diagram element found in drawio xml");
+
+            return ParseDiagramElement<TName, TPortId>(diagram, nameHandler, portIdHandler);
+        }
+
+        public static Flowchart<TName, TPortId> ParseDiagramElement<TName, TPortId>(XmlElement diagram, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+        {
+            if (diagram == null)
+                throw new ArgumentNullException(nameof(diagram));
+
+            if (nameHandler == null)
+                throw new ArgumentNullException(nameof(nameHandler));
+
+            if (portIdHandler == null)
+                throw new ArgumentNullException(nameof(portIdHandler));
+
+            string flowchartName = "";
+            if (diagram.HasAttribute("name"))
+            {
+                flowchartName = diagram.GetAttribute("name");
+            }
 
             var diagramRoot = diagram["mxGraphModel"]["root"];
             var diagramObjects = diagramRoot.SelectNodes("object").Cast<XmlElement>();
@@ -81,7 +117,8 @@ namespace YuukaFlow.Core.Parser
                         continue;
 
                     TName nameKey = nameHandler(nodeName);
-                    nodes.Add(nodeId, new Node<TName>(nodeId, nameKey));
+                    if (nodes.TryAdd(nodeId, new Node<TName>(nodeId, nameKey)) == false)
+                        throw new Exception($"[YuukaFlow] DrawioParser Deserialize: Duplicate node id '{nodeId}' found in drawio xml");
 
                     bool isEntryNode = obj.HasAttribute(ENTRY_NODE_ATTRIBUTE);
                     if (isEntryNode)
@@ -112,6 +149,14 @@ namespace YuukaFlow.Core.Parser
             if (entryNode.HasValue == false)
                 throw new Exception("[YuukaFlow] DrawioParser Deserialize: No entry node found in drawio xml");
 
+            bool hasDuplicateNodeNames = nodes.Values
+                .GroupBy(node => node.Name)
+                .Any(group => group.Count() > 1);
+            if (hasDuplicateNodeNames)
+            {
+                var names = nodes.Values.GroupBy(node => node.Name).Where(g => g.Count() > 1).Select(g => g.Key);
+                throw new Exception($"[YuukaFlow] DrawioParser Deserialize: Duplicate node names found in drawio xml. Node names: {string.Join(", ", names)}");
+            }
             HashSet<string> includingNodeIds = Enumerable
                 .Concat(
                     edges.Select(edge => edge.SourceId),
@@ -143,12 +188,15 @@ namespace YuukaFlow.Core.Parser
             return new Flowchart<TName, TPortId>(
                 entryNodeName: entryNode.Value.Name,
                 flowNodes: flowNodes
-            );
+            )
+            {
+                Name = flowchartName,
+            };
         }
 
-        public static Flowchart<string, string> Deserialize(string xmlText)
+        public static Flowchart<string, string> DeserializeFirstDiagram(string xmlText)
         {
-            return Deserialize<string, string>(
+            return DeserializeFirstDiagram<string, string>(
                 xmlText,
                 nameHandler: StringToString,
                 portIdHandler: StringToString
