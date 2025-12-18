@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace YuukaFlow.Core.Extensions
 {
-    public static class PersistentExtensions
+    public static class Persistent
     {
 
         ref struct HashJumper
@@ -36,7 +36,7 @@ namespace YuukaFlow.Core.Extensions
             var hashJumper = new HashJumper(array.Length, seed: 31);
             foreach (var item in array)
             {
-                hashJumper.Jump(GetObjectPersistentCode(item));
+                hashJumper.Jump(GetPersistentCode(item));
             }
             return hashJumper.Value;
         }
@@ -50,13 +50,13 @@ namespace YuukaFlow.Core.Extensions
 
             foreach (var pair in dict.OrderBy(kv => kv.Key))
             {
-                hashJumper.Jump(GetObjectPersistentCode(pair.Key));
-                hashJumper.Jump(GetObjectPersistentCode(pair.Value));
+                hashJumper.Jump(GetPersistentCode(pair.Key));
+                hashJumper.Jump(GetPersistentCode(pair.Value));
             }
             return hashJumper.Value;
         }
 
-        public static int GetObjectPersistentCode<T>(T obj)
+        public static int GetPersistentCode<T>(T obj)
         {
             return obj switch
             {
@@ -65,20 +65,21 @@ namespace YuukaFlow.Core.Extensions
                 string str => GetStringPersistentCode(str),
                 _ => obj.GetHashCode(), // not persistent but best effort
             };
-        }
-
-        public static int GetStringPersistentCode(ReadOnlySpan<char> str)
-        {
-            if (str.Length == 0)
-                return 0;
-
-            var hashJumper = new HashJumper(str.Length, seed: 31);
-            foreach (var ch in str)
+            
+            static int GetStringPersistentCode(ReadOnlySpan<char> str)
             {
-                hashJumper.Jump(ch);
+                if (str.Length == 0)
+                    return 0;
+
+                var hashJumper = new HashJumper(str.Length, seed: 31);
+                foreach (var ch in str)
+                {
+                    hashJumper.Jump(ch);
+                }
+                return hashJumper.Value;
             }
-            return hashJumper.Value;
         }
+
 
         public static int CombinePersistentCode(params int[] codes)
         {

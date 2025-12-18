@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using static YuukaFlow.Core.Extensions.PersistentExtensions;
-using static YuukaFlow.Core.Extensions.StringExtensions;
+using static YuukaFlow.Core.Extensions.Persistent;
+using static YuukaFlow.Core.Extensions.Text;
 
 namespace YuukaFlow.Core
 {
@@ -62,7 +62,7 @@ namespace YuukaFlow.Core
         public int GetPersistentCode()
         {
             return CombinePersistentCode(
-                GetObjectPersistentCode(Name),
+                Extensions.Persistent.GetPersistentCode(Name),
                 GetDictionaryPersistentCode(OutputPorts)
             );
         }

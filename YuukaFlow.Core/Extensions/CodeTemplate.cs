@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YuukaFlow.Core.Extensions
 {
-    public static class CodeTemplateExtensions
+    public static class CodeTemplate
     {
 
 
@@ -160,7 +160,7 @@ namespace YuukaFlow.Core.Extensions
                 }
                 else
                 {
-                    foreach (var (portId, port) in node.OutputPorts)
+                    foreach (var (portId, _) in node.OutputPorts)
                     {
                         stringBuilder
                             .Append(indentString).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"return {portIdSerializer(portId)};");

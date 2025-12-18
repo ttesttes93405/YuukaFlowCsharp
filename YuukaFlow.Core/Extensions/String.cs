@@ -5,7 +5,7 @@ using System.Text;
 
 namespace YuukaFlow.Core.Extensions
 {
-    public static class StringExtensions
+    public static class Text
     {
 
         public static StringBuilder BuildString<TName, TPortId>(this Flowchart<TName, TPortId> flowchart, StringBuilder sb, int indent = 0)

@@ -1,5 +1,5 @@
-using static YuukaFlow.Core.Extensions.PersistentExtensions;
-using static YuukaFlow.Core.Extensions.StringExtensions;
+using static YuukaFlow.Core.Extensions.Persistent;
+using static YuukaFlow.Core.Extensions.Text;
 
 namespace YuukaFlow.Core
 {
@@ -28,8 +28,8 @@ namespace YuukaFlow.Core
         public int GetPersistentCode()
         {
             return CombinePersistentCode(
-                GetStringPersistentCode(Name),
-                GetObjectPersistentCode(EntryNodeName),
+                Extensions.Persistent.GetPersistentCode(Name),
+                Extensions.Persistent.GetPersistentCode(EntryNodeName),
                 GetArrayPersistentCode(FlowNodes)
             );
         }
