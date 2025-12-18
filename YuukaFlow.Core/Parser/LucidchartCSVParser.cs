@@ -100,9 +100,9 @@ namespace YuukaFlow.Core.Parser
                             var value = nodes.First((node) => node.Id.ToString() == port.LineDestination).nodename;
                             if (value == null)
                                 throw new Exception($"[YuukaFlow] LucidchartCSVParser ConvertListItemToFlowchart: LineDestination {port.LineDestination} not found");
-                            return (key, value);
+                            return (portId: key, targetNode: value);
                         })
-                        .ToDictionary(t => t.key, t => t.value);
+                        .ToArray();
 
                      return new FlowNode<string, string>(GetNodeName(flowData), outputPorts);
                  })

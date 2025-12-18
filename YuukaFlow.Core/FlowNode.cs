@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using static YuukaFlow.Core.Extensions;
 
@@ -5,31 +6,46 @@ namespace YuukaFlow.Core
 {
     public record FlowNode : FlowNode<string, string>
     {
-        public FlowNode(string name, Dictionary<string, string>? outputPorts = null) : base(name, outputPorts) { }
+        public FlowNode(string name) : base(name) { }
+        public FlowNode(string name, params (string portId, string targetNode)[] outputPorts) : base(name, outputPorts) { }
     }
 
     public record FlowNode<TName, TPortId> : IPersistent
     {
         public TName Name { get; init; }
-        public Dictionary<TPortId, TName>? OutputPorts { get; init; }
+        public Dictionary<TPortId, TName>? OutputPorts { get; private set; }
 
-        private FlowNode() => throw new System.Exception("FlowNode must have a name");
+        private FlowNode() => throw new Exception("FlowNode must have a name");
 
         public FlowNode(TName name)
         {
             Name = name;
             OutputPorts = null;
         }
-        public FlowNode(TName name, Dictionary<TPortId, TName>? outputPorts = null)
+
+        public FlowNode(TName name, params (TPortId portId, TName targetNode)[] outputPorts)
         {
             Name = name;
-            OutputPorts = outputPorts;
+            if (outputPorts.Length == 0)
+            {
+                OutputPorts = null;
+            }
+            else
+            {
+                OutputPorts = new Dictionary<TPortId, TName>();
+                foreach (var (portId, targetNode) in outputPorts)
+                {
+                    OutputPorts[portId] = targetNode;
+                }
+            }
         }
+
 
         public override string ToString()
         {
             return this.BuildString(new System.Text.StringBuilder()).ToString();
         }
+
         public int GetPersistentCode()
         {
             return CombinePersistentCode(

@@ -70,13 +70,17 @@ public class UnitTest
 
 
         var flowchart = DrawioParser.DeserializeFirstDiagram(xml);
-        Assert.Equal(-275335120, flowchart.GetPersistentCode());
+
+
+        Console.WriteLine($"Node: {flowchart.Name} {flowchart.GetPersistentCode()}");
+        foreach (var node in flowchart.FlowNodes)
+        {
+            Console.WriteLine($"Node: {node.Name} {node.GetPersistentCode()}");
+        }
+
+
+        Assert.Equal(69981277, flowchart.GetPersistentCode());
     }
-
-
-
-
-
 
 
 

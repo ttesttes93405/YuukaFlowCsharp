@@ -171,17 +171,10 @@ namespace YuukaFlow.Core.Parser
                     var outputPorts = edges
                         .Where(edge => edge.SourceId == node.Id)
                         .Where(edge => nodes.ContainsKey(edge.TargetId))
-                        .ToDictionary(
-                            edge => edge.PortId,
-                            edge => nodes[edge.TargetId].Name
-                        );
+                        .Select(edge => (portId: edge.PortId, targetNode: nodes[edge.TargetId].Name))
+                        .ToArray();
 
-                    var result = new FlowNode<TName, TPortId>(node.Name)
-                    {
-                        OutputPorts = outputPorts
-                    };
-
-                    return result;
+                    return new FlowNode<TName, TPortId>(node.Name, outputPorts);
                 })
                 .ToList());
 

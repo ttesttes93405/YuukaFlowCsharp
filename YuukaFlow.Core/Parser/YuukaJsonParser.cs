@@ -43,7 +43,7 @@ namespace YuukaFlow.Core.Parser
                 flowNodes: new(flowModel.FlowNodes?
                     .Select(node => new FlowNode<string, string>(
                             node.Name!,
-                            node.OutputPorts
+                            node.OutputPorts.Select(port => (portId: port.Key, targetNode: port.Value)).ToArray()
                         ))
                     .ToList())
             );

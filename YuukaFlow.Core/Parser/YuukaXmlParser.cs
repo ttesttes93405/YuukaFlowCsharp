@@ -32,16 +32,13 @@ namespace YuukaFlow.Core.Parser
                         {
                             string portName = outputPortXmlNode.Attributes["name"]?.Value ?? string.Empty;
                             string toName = outputPortXmlNode.Attributes["to"].Value;
-                            return (portName, toName);
+                            return (portId: portName, targetNode: toName);
                         })
-                        .ToDictionary(t => t.portName, t => t.toName);
+                        .ToArray();
 
                     var nodeName = xmlNode.Attributes["name"].Value;
 
-                    var result = new FlowNode<string, string>(nodeName)
-                    {
-                        OutputPorts = outputPorts
-                    };
+                    var result = new FlowNode<string, string>(nodeName, outputPorts);
 
                     return result;
                 })
