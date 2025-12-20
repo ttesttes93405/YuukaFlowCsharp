@@ -57,9 +57,9 @@ namespace YuukaFlow.Core
 
         public Fingerprint GetFingerprint()
         {
-            return CombineFingerprint(
-                Extensions.FingerprintExtensions.GetFingerprint(Name),
-                Extensions.FingerprintExtensions.GetFingerprint(OutputPorts)
+            return CombineFingerprints(
+                Fingerprint.From(Name),
+                Fingerprint.FromFingerprintProvider(OutputPorts)
             );
         }
 

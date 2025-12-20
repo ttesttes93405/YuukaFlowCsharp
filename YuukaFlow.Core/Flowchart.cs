@@ -27,10 +27,10 @@ namespace YuukaFlow.Core
 
         public Fingerprint GetFingerprint()
         {
-            return CombineFingerprint(
-                Extensions.FingerprintExtensions.GetFingerprint(Name),
-                Extensions.FingerprintExtensions.GetFingerprint(EntryNodeName),
-                GetArrayFingerprint(FlowNodes)
+            return CombineFingerprints(
+                Fingerprint.From(Name),
+                Fingerprint.From(EntryNodeName),
+                Fingerprint.FromSpan<FlowNode<TName, TPortId>>(FlowNodes)
             );
         }
 

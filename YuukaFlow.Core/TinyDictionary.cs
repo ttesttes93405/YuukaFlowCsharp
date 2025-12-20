@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using YuukaFlow.Core.Extensions;
 
 namespace YuukaFlow.Core
 {
@@ -129,16 +130,17 @@ namespace YuukaFlow.Core
         public Fingerprint GetFingerprint()
         {
             if (items == null)
-                return Fingerprint.Null;
+                return Fingerprint.None;
 
-            var hashJumper = new Extensions.FingerprintExtensions.HashJumper(17, seed: 31);
+            var fingerprint = new Fingerprint(17);
 
             foreach (var (key, value) in items.OrderBy(kv => kv.key))
             {
-                hashJumper.Jump(Extensions.FingerprintExtensions.GetFingerprint(key));
-                hashJumper.Jump(Extensions.FingerprintExtensions.GetFingerprint(value));
+                fingerprint = fingerprint
+                    .Combine(Fingerprint.From(key))
+                    .Combine(Fingerprint.From(value));
             }
-            return new(hashJumper.Value);
+            return fingerprint;
         }
 
         public override int GetHashCode() => GetFingerprint().Code;
