@@ -19,7 +19,7 @@
   <Target Name="CopyToUnity" AfterTargets="Build" Condition="'$(SkipCopyDll)' != 'true'">
     <Copy
       SourceFiles="$(OutputPath)/YuukaFlow.Core.dll"
-      DestinationFolder="$(SolutionDir)/YuukaFlow.Unity/Core/"
+      DestinationFolder="$(SolutionDir)/YuukaFlow.Unity/Assets/YuukaFlow/Core/"
       SkipUnchangedFiles="true"
     />
   </Target>
