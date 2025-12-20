@@ -1,6 +1,8 @@
 
 # Unity
 YuukaFlow.Unity/*
+!YuukaFlow.Unity/Assets
+YuukaFlow.Unity/Assets/*
 !YuukaFlow.Unity/Assets/YuukaFlow
 !YuukaFlow.Unity/Assets/YuukaFlow/**
 

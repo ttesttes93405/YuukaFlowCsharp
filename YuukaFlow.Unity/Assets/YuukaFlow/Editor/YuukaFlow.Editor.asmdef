@@ -1,0 +1,18 @@
+{
+    "name": "YuukaFlow.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:3f7c5573637a74e1485c96e3079eaa02"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
