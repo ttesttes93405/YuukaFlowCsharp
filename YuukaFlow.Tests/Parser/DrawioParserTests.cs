@@ -67,19 +67,20 @@ public class DrawioParserTests
 
 
     [Fact]
-    public void DeserializeFirstDiagram_WhenKnownXml_ShouldReturnExpectedDiagramPersistentCode()
-    {
-        var flowchart = DrawioParser.DeserializeFirstDiagram(testXml);
-
-        Assert.Equal(1502198891, flowchart.GetPersistentCode());
-    }
-
-    [Fact]
     public void DeserializeFirstDiagram_WhenSameXml_ShouldReturnEqualFlowchartPersistentCode()
     {
         var flowchart1 = DrawioParser.DeserializeFirstDiagram(testXml);
         var flowchart2 = DrawioParser.DeserializeFirstDiagram(testXml);
 
-        Assert.Equal(flowchart1.GetPersistentCode(), flowchart2.GetPersistentCode());
+        Assert.Equal(flowchart1.GetFingerprint(), flowchart2.GetFingerprint());
     }
+
+    [Fact]
+    public void DeserializeFirstDiagram_WhenKnownXml_ShouldReturnExpectedDiagramPersistentCode()
+    {
+        var flowchart = DrawioParser.DeserializeFirstDiagram(testXml);
+
+        Assert.Equal(new(1502198891), flowchart.GetFingerprint());
+    }
+
 }

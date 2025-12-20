@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YuukaFlow.Core.Extensions
 {
-    public static class CodeTemplate
+    public static class CodeTemplateExtensions
     {
 
 
@@ -22,7 +22,7 @@ namespace YuukaFlow.Core.Extensions
             }
             string indentString = indentStringBuilder.ToString();
 
-            bool isOutputPortEmpty = flowNode.OutputPorts == null || flowNode.OutputPorts.Count == 0;
+            bool isOutputPortEmpty = flowNode.OutputPorts.Count == 0;
 
             var stringBuilder = new StringBuilder();
 
@@ -36,10 +36,8 @@ namespace YuukaFlow.Core.Extensions
                     .Append(indentString).Append(INDENT_UNIT).AppendLine("{");
 
 
-                foreach (var pair in flowNode.OutputPorts!)
+                foreach (var (portId, toName) in flowNode.OutputPorts.Pairs)
                 {
-                    var portId = pair.Key;
-                    var toName = pair.Value;
                     stringBuilder
                         .Append(indentString).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"[{portIdSerializer(portId)}] = {nameSerializer(toName)},");
                 }
@@ -153,14 +151,14 @@ namespace YuukaFlow.Core.Extensions
                     .Append(indentString).Append(INDENT_UNIT).AppendLine($"async ValueTask<{portIdTypeName}> {implementationNameSerializer(nodeName)}({contextTypeName} context)")
                     .Append(indentString).Append(INDENT_UNIT).AppendLine("{");
 
-                if (node.OutputPorts == null || node.OutputPorts.Count == 0)
+                if (node.OutputPorts.Count == 0)
                 {
                     stringBuilder
                         .Append(indentString).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"return default;");
                 }
                 else
                 {
-                    foreach (var (portId, _) in node.OutputPorts)
+                    foreach (var (portId, _) in node.OutputPorts.Pairs)
                     {
                         stringBuilder
                             .Append(indentString).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"return {portIdSerializer(portId)};");

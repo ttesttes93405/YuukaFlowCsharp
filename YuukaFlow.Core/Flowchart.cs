@@ -1,10 +1,10 @@
-using static YuukaFlow.Core.Extensions.Persistent;
-using static YuukaFlow.Core.Extensions.Text;
+using static YuukaFlow.Core.Extensions.FingerprintExtensions;
+using static YuukaFlow.Core.Extensions.StringExtensions;
 
 namespace YuukaFlow.Core
 {
 
-    public record Flowchart<TName, TPortId> : IPersistent
+    public record Flowchart<TName, TPortId> : IFingerprintProvider
     {
         public string Name { get; init; }
         public TName EntryNodeName { get; init; }
@@ -25,16 +25,16 @@ namespace YuukaFlow.Core
             return this.BuildString(new System.Text.StringBuilder()).ToString();
         }
 
-        public int GetPersistentCode()
+        public Fingerprint GetFingerprint()
         {
-            return CombinePersistentCode(
-                Extensions.Persistent.GetPersistentCode(Name),
-                Extensions.Persistent.GetPersistentCode(EntryNodeName),
-                GetArrayPersistentCode(FlowNodes)
+            return CombineFingerprint(
+                Extensions.FingerprintExtensions.GetFingerprint(Name),
+                Extensions.FingerprintExtensions.GetFingerprint(EntryNodeName),
+                GetArrayFingerprint(FlowNodes)
             );
         }
 
-        public override int GetHashCode() => GetPersistentCode();
+        public override int GetHashCode() => GetFingerprint().Code;
     }
 
 }

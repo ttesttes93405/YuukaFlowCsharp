@@ -61,7 +61,7 @@ namespace YuukaFlow.Core.Parser
                     .Select(node => new FlowNodeModel()
                     {
                         Name = node.Name,
-                        OutputPorts = node.OutputPorts
+                        OutputPorts = node.OutputPorts.ToDictionary(),
                     })
                     .ToArray(),
             };

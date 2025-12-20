@@ -82,7 +82,7 @@ namespace YuukaFlow.Core.Parser
             return ParseDiagramElement<TName, TPortId>(diagram, nameDeserializer, portIdDeserializer);
         }
 
-        public static Flowchart<TName, TPortId> ParseDiagramElement<TName, TPortId>(XmlElement diagram, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+        public static Flowchart<TName, TPortId> ParseDiagramElement_origin<TName, TPortId>(XmlElement diagram, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
         {
             if (diagram == null)
                 throw new ArgumentNullException(nameof(diagram));
@@ -185,6 +185,74 @@ namespace YuukaFlow.Core.Parser
             {
                 Name = flowchartName,
             };
+        }
+
+        public static Flowchart<TName, TPortId> ParseDiagramElement<TName, TPortId>(XmlElement diagram, Func<string, TName> nameHandler, Func<string, TPortId> portIdHandler)
+        {
+            if (diagram == null)
+                throw new ArgumentNullException(nameof(diagram));
+
+            if (nameHandler == null)
+                throw new ArgumentNullException(nameof(nameHandler));
+
+            if (portIdHandler == null)
+                throw new ArgumentNullException(nameof(portIdHandler));
+
+            string flowchartName = "";
+            if (diagram.HasAttribute("name"))
+            {
+                flowchartName = diagram.GetAttribute("name");
+            }
+
+            var diagramRoot = diagram["mxGraphModel"]["root"];
+            var diagramObjects = diagramRoot.SelectNodes("object").Cast<XmlElement>();
+
+            FlowchartBuilder<TName, TPortId> builder = new(flowchartName);
+
+
+            var nodeIdQuery = new Dictionary<string, TName>();
+            var nodes = diagramObjects.Where(obj => obj.HasAttribute(NODE_NAME_ATTRIBUTE));
+            foreach (var node in nodes)
+            {
+                string nodeName = node.Attributes[NODE_NAME_ATTRIBUTE].Value;
+                string? nodeId = node.Attributes["id"]?.Value;
+                if (nodeId == null)
+                    continue;
+
+                TName nameKey = nameHandler(nodeName);
+                builder.AddNode(nameKey);
+                nodeIdQuery[nodeId] = nameKey;
+
+                bool isEntryNode = node.HasAttribute(ENTRY_NODE_ATTRIBUTE);
+                if (isEntryNode)
+                {
+                    builder.SetEntryNode(nameKey);
+                }
+            }
+
+            var edges = diagramObjects.Where(obj => obj.HasAttribute(PORT_NAME_ATTRIBUTE));
+            foreach (var edge in edges)
+            {
+                string portId = edge.Attributes[PORT_NAME_ATTRIBUTE].Value;
+                string? nodeId = edge.Attributes["id"]?.Value;
+                var cell = edge["mxCell"];
+                string? sourceId = cell.Attributes["source"]?.Value;
+                string? targetId = cell.Attributes["target"]?.Value;
+                if (nodeId == null || sourceId == null || targetId == null)
+                    continue;
+
+                TPortId portIdKey = portIdHandler(portId);
+
+                if (nodeIdQuery.TryGetValue(sourceId, out var sourceNode) == false)
+                    throw new Exception($"[YuukaFlow] DrawioParser ParseDiagramElement: Source node id '{sourceId}' not found for edge in drawio xml");
+
+                if (nodeIdQuery.TryGetValue(targetId, out var targetNode) == false)
+                    throw new Exception($"[YuukaFlow] DrawioParser ParseDiagramElement: Target node id '{targetId}' not found for edge in drawio xml");
+
+                builder.AddConnection(sourceNode, portIdKey, targetNode);
+            }
+
+            return builder.Build();
         }
 
         public static Flowchart<string, string> DeserializeFirstDiagram(string xmlText)

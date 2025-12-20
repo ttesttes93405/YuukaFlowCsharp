@@ -4,6 +4,7 @@ YuukaFlow.Unity/*
 !YuukaFlow.Unity/Assets/
 !YuukaFlow.Unity/Assets/**
 
+.editorconfig
 .[Pp]layground/
 .DS_Store
 

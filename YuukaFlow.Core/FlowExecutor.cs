@@ -18,6 +18,13 @@ namespace YuukaFlow.Core
         {
             Name = null;
             OnFlowNodeChanged = null;
+
+            if (flowchart == null)
+                throw new NullReferenceException(nameof(flowchart));
+
+            if (implementations == null)
+                throw new NullReferenceException(nameof(implementations));
+
             _flowchart = flowchart;
             _implementations = implementations;
         }
@@ -31,14 +38,20 @@ namespace YuukaFlow.Core
 
             var allFlowName = flowNodes.Select(node => node.Name).ToHashSet();
             if (allFlowName.SetEquals(_implementations.Keys) == false)
-                throw new Exception($"[YuukaFlow] Flow({Name}) implementation not fullmatch\n{nameof(allFlowName)}=[ {string.Join(", ", allFlowName)} ]\n{nameof(_implementations)}.Keys = [ {string.Join(", ", _implementations.Keys)} ]");
+                throw new Exception($"[YuukaFlow] Flow({Name}) implementation not full match\n{nameof(allFlowName)}=[ {string.Join(", ", allFlowName)} ]\n{nameof(_implementations)}.Keys = [ {string.Join(", ", _implementations.Keys)} ]");
 
-            var currentNode = GetFlowNode(_flowchart.EntryNodeName) ?? throw new Exception($"[YuukaFlow] Flow({Name}) entry node {_flowchart.EntryNodeName} not found");
+            if (_flowchart.EntryNodeName == null)
+                throw new NullReferenceException(nameof(_flowchart.EntryNodeName));
+
+            var currentNode = GetFlowNode(_flowchart.EntryNodeName);
+            if (currentNode == null)
+                throw new Exception($"[YuukaFlow] Flow({Name}) entry node {_flowchart.EntryNodeName} not found");
+
             OnFlowNodeChanged?.Invoke(null, default, currentNode);
 
             while (true)
             {
-                if (_implementations.TryGetValue(currentNode!.Name, out var implementation) == false)
+                if (_implementations.TryGetValue(currentNode.Name, out var implementation) == false)
                     throw new Exception($"[YuukaFlow] Flow({Name}) implementation not found for node {currentNode.Name}");
 
                 if (implementation == null)

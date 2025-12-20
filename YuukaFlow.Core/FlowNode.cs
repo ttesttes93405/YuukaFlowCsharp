@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using static YuukaFlow.Core.Extensions.Persistent;
-using static YuukaFlow.Core.Extensions.Text;
+using static YuukaFlow.Core.Extensions.FingerprintExtensions;
+using static YuukaFlow.Core.Extensions.StringExtensions;
 
 namespace YuukaFlow.Core
 {
@@ -11,16 +11,16 @@ namespace YuukaFlow.Core
         public FlowNode(string name, params (string portId, string targetNode)[] outputPorts) : base(name, outputPorts) { }
     }
 
-    public record FlowNode<TName, TPortId> : IPersistent
+    public record FlowNode<TName, TPortId> : IFingerprintProvider
     {
         public TName Name { get; init; }
-        internal Dictionary<TPortId, TName>? OutputPorts { get; private set; }
+        internal TinyDictionary<TPortId, TName> OutputPorts { get; private set; }
 
-        public bool HasOutputPorts => OutputPorts != null && OutputPorts.Count > 0;
+        public bool HasOutputPorts => OutputPorts.Count > 0;
 
         public bool TryGetNextNodeName(TPortId portId, out TName nextNode)
         {
-            if (OutputPorts != null && OutputPorts.TryGetValue(portId, out nextNode))
+            if (OutputPorts.TryGetValue(portId, out nextNode))
             {
                 return true;
             }
@@ -33,7 +33,7 @@ namespace YuukaFlow.Core
         public FlowNode(TName name)
         {
             Name = name;
-            OutputPorts = null;
+            OutputPorts = new();
         }
 
         public FlowNode(TName name, params (TPortId portId, TName targetNode)[] outputPorts)
@@ -41,15 +41,11 @@ namespace YuukaFlow.Core
             Name = name;
             if (outputPorts.Length == 0)
             {
-                OutputPorts = null;
+                OutputPorts = new();
             }
             else
             {
-                OutputPorts = new Dictionary<TPortId, TName>();
-                foreach (var (portId, targetNode) in outputPorts)
-                {
-                    OutputPorts[portId] = targetNode;
-                }
+                OutputPorts = new(outputPorts);
             }
         }
 
@@ -59,15 +55,15 @@ namespace YuukaFlow.Core
             return this.BuildString(new System.Text.StringBuilder()).ToString();
         }
 
-        public int GetPersistentCode()
+        public Fingerprint GetFingerprint()
         {
-            return CombinePersistentCode(
-                Extensions.Persistent.GetPersistentCode(Name),
-                GetDictionaryPersistentCode(OutputPorts)
+            return CombineFingerprint(
+                Extensions.FingerprintExtensions.GetFingerprint(Name),
+                Extensions.FingerprintExtensions.GetFingerprint(OutputPorts)
             );
         }
 
-        public override int GetHashCode() => GetPersistentCode();
+        public override int GetHashCode() => GetFingerprint().Code;
     }
 
 }

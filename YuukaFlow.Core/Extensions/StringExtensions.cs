@@ -5,7 +5,7 @@ using System.Text;
 
 namespace YuukaFlow.Core.Extensions
 {
-    public static class Text
+    public static class StringExtensions
     {
 
         public static StringBuilder BuildString<TName, TPortId>(this Flowchart<TName, TPortId> flowchart, StringBuilder sb, int indent = 0)
@@ -28,6 +28,9 @@ namespace YuukaFlow.Core.Extensions
             foreach (var node in flowchart.FlowNodes)
             {
                 node.BuildString(sb, indent + 4);
+                sb
+                    .Append(',')
+                    .AppendLine();
             }
 
             sb
@@ -50,33 +53,30 @@ namespace YuukaFlow.Core.Extensions
             sb
                 .Append(' ', indent).Append($"FlowNode({flowNode.Name})");
 
-            if (flowNode.OutputPorts == null || flowNode.OutputPorts.Count == 0)
-                return sb;
+            if (flowNode.OutputPorts.Count == 0)
+            {
+                return sb.Append(" -*");
+            }
 
             if (flowNode.OutputPorts.Count == 1)
             {
-                var kv = flowNode.OutputPorts.First();
-                sb
-                    .AppendLine($" -|{kv.Key}|-> {kv.Value}");
-                return sb;
+                var (key, value) = flowNode.OutputPorts.Pairs.First();
+                return sb
+                    .Append($" -|{key}|-> {value}");
             }
 
             sb
                 .AppendLine()
                 .Append(' ', indent).AppendLine("{");
 
-            foreach (var pair in flowNode.OutputPorts)
+            foreach (var (portId, toName) in flowNode.OutputPorts.Pairs)
             {
-                var portId = pair.Key;
-                var toName = pair.Value;
                 sb
                     .Append(' ', indent + 2).AppendLine($"-|{portId}|-> {toName}");
             }
 
-            sb
-                .Append(' ', indent).AppendLine("}");
-
-            return sb;
+            return sb
+                .Append(' ', indent).Append("}");
         }
 
         public static string ToString<TName, TPortId>(this FlowNode<TName, TPortId> flowNode, StringBuilder sb, int indent = 0)
