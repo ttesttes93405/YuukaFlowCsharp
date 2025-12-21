@@ -64,6 +64,31 @@ namespace YuukaFlow.Core
         }
 
         public override int GetHashCode() => GetFingerprint().Code;
+
+
+        public FlowNode<TOtherName, TOtherPortId> ConvertTypes<TOtherName, TOtherPortId>(
+            Func<TName, TOtherName> nameConverter,
+            Func<TPortId, TOtherPortId> portIdConverter)
+        {
+            var convertedPorts = new (TOtherPortId portId, TOtherName targetNode)[OutputPorts.Count];
+
+            int i = 0;
+            foreach (var (key, value) in OutputPorts.Pairs)
+            {
+                convertedPorts[i] = (
+                    portId: portIdConverter(key),
+                    targetNode: nameConverter(value)
+                );
+                i++;
+            }
+
+            return new FlowNode<TOtherName, TOtherPortId>(
+                nameConverter(Name),
+                convertedPorts
+            );
+
+        }
+
     }
 
 }

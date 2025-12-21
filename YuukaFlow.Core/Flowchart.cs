@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using static YuukaFlow.Core.Extensions.FingerprintExtensions;
 using static YuukaFlow.Core.Extensions.StringExtensions;
 
@@ -35,6 +37,22 @@ namespace YuukaFlow.Core
         }
 
         public override int GetHashCode() => GetFingerprint().Code;
+
+        public Flowchart<TOtherName, TOtherPortId> ConvertTypes<TOtherName, TOtherPortId>(
+            Func<TName, TOtherName> nameConverter,
+            Func<TPortId, TOtherPortId> portIdConverter)
+        {
+            if (nameConverter == null)
+                throw new ArgumentNullException(nameof(nameConverter));
+            if (portIdConverter == null)
+                throw new ArgumentNullException(nameof(portIdConverter));
+
+            return new Flowchart<TOtherName, TOtherPortId>(
+                nameConverter(EntryNodeName),
+                FlowNodes.Select(n => n.ConvertTypes(nameConverter, portIdConverter)).ToArray()
+            );
+        }
+
     }
 
 }
