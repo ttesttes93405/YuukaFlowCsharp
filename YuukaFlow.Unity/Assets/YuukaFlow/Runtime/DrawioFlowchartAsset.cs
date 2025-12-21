@@ -1,7 +1,6 @@
 using YuukaFlow.Core;
 using UnityEngine;
 using YuukaFlow.Core.Parser;
-using System.Linq;
 
 namespace YuukaFlow.Unity
 {

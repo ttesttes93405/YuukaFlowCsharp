@@ -10,7 +10,7 @@ namespace YuukaFlow.Unity
         [Serializable]
         public struct PreviewNode
         {
-            public string nodeName;
+            public string NodeName;
         }
 
         [SerializeField]
@@ -37,8 +37,8 @@ namespace YuukaFlow.Unity
             else
             {
                 flowchartName = flowchart.Name;
-                previewEntryNode = new PreviewNode { nodeName = flowchart.EntryNodeName };
-                previewNodes = flowchart.FlowNodes.Select(n => new PreviewNode { nodeName = n.Name }).ToArray();
+                previewEntryNode = new PreviewNode { NodeName = flowchart.EntryNodeName };
+                previewNodes = flowchart.FlowNodes.Select(n => new PreviewNode { NodeName = n.Name }).ToArray();
             }
         }
 
