@@ -13,7 +13,7 @@ namespace YuukaFlow.Core
 
         public FlowNode<TName, TPortId>[] FlowNodes { get; init; }
 
-        private Flowchart() => throw new System.Exception("No parameter Flowchart constructor is not allowed");
+        private Flowchart() => throw new Exception("No parameter Flowchart constructor is not allowed");
 
         public Flowchart(TName entryNodeName, FlowNode<TName, TPortId>[] flowNodes)
         {
@@ -50,7 +50,10 @@ namespace YuukaFlow.Core
             return new Flowchart<TOtherName, TOtherPortId>(
                 nameConverter(EntryNodeName),
                 FlowNodes.Select(n => n.ConvertTypes(nameConverter, portIdConverter)).ToArray()
-            );
+            )
+            {
+                Name = this.Name
+            };
         }
 
     }

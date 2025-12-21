@@ -27,7 +27,7 @@ public class FlowExecutorTests
             ]
         );
 
-        var implementations = new Dictionary<string, Func<TestContext, ValueTask<int>>>
+        var implementations = new Dictionary<string, FlowNodeImplementation<TestContext, int>>
         {
             ["Start"] = static (context) =>
             {

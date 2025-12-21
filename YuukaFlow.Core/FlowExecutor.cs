@@ -5,16 +5,19 @@ using System.Threading.Tasks;
 
 namespace YuukaFlow.Core
 {
+    public delegate ValueTask<TPortId> FlowNodeImplementation<in TContext, TPortId>(TContext context);
+
     public class FlowExecutor<TContext, TName, TPortId> where TContext : class
     {
 
         readonly Flowchart<TName, TPortId> _flowchart;
-        readonly Dictionary<TName, Func<TContext, ValueTask<TPortId>>> _implementations;
+        readonly Dictionary<TName, FlowNodeImplementation<TContext, TPortId>> _implementations;
+
         public string? Name { get; init; }
 
         public event Action<FlowNode<TName, TPortId>?, TPortId?, FlowNode<TName, TPortId>?>? OnFlowNodeChanged;
 
-        public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, Func<TContext, ValueTask<TPortId>>> implementations)
+        public FlowExecutor(Flowchart<TName, TPortId> flowchart, Dictionary<TName, FlowNodeImplementation<TContext, TPortId>> implementations)
         {
             Name = null;
             OnFlowNodeChanged = null;

@@ -122,7 +122,7 @@ namespace YuukaFlow.Core.Extensions
             var stringBuilder = new StringBuilder();
 
             stringBuilder
-                .Append(indentString).AppendLine($"Dictionary<{nameTypeName}, Func<{contextTypeName}, ValueTask<{portIdTypeName}>>> GetImplementations()")
+                .Append(indentString).AppendLine($"Dictionary<{nameTypeName}, FlowNodeImplementation<{contextTypeName}, {portIdTypeName}>> GetImplementations()")
                 .Append(indentString).AppendLine("{");
 
             stringBuilder
