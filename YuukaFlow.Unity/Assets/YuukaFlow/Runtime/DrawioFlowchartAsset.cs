@@ -1,6 +1,7 @@
 using YuukaFlow.Core;
 using UnityEngine;
 using YuukaFlow.Core.Parser;
+using System.Linq;
 
 namespace YuukaFlow.Unity
 {
@@ -9,16 +10,6 @@ namespace YuukaFlow.Unity
         [HideInInspector]
         [SerializeField]
         string rawData;
-
-        [SerializeField]
-        string flowchartName;
-
-        [SerializeField]
-        string entryNodeName;
-
-        [SerializeField]
-        int nodeCount;
-
 
         public override Flowchart<string, string> GetFlowchart()
         {
@@ -35,9 +26,7 @@ namespace YuukaFlow.Unity
 
             var flowchart = DrawioParser.DeserializeFirstDiagram(rawData);
 
-            flowchartName = flowchart.Name;
-            entryNodeName = flowchart.EntryNodeName;
-            nodeCount = flowchart.FlowNodes.Length;
+            UpdatePreview(flowchart);
         }
     }
 }
