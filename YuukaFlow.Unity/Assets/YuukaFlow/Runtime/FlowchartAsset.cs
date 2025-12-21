@@ -43,5 +43,19 @@ namespace YuukaFlow.Unity
         }
 
         public abstract Flowchart<string, string> GetFlowchart();
+
+        public Flowchart<TName, TPortId> GetFlowchart<TName, TPortId>(Func<string, TName> nameConverter, Func<string, TPortId> portIdConverter)
+        {
+            var baseFlowchart = GetFlowchart();
+            try
+            {
+                var flowchart = baseFlowchart.ConvertTypes(nameConverter, portIdConverter);
+                return flowchart;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to convert flowchart types.", e);
+            }
+        }
     }
 }
