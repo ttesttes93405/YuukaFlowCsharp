@@ -4,11 +4,14 @@
     "author": {
         "name": "Owen Sun"
     },
-    "version": "1.0.0",
+    "version": "1.1.0-preview.1",
     "unity": "2018.4",
     "description": "",
     "keywords": [
-        ""
+        "blue",
+        "archive",
+        "yuuka",
+        "flow"
     ],
     "license": "MIT",
     "dependencies": {}
