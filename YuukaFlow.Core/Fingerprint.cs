@@ -17,6 +17,32 @@ namespace YuukaFlow.Core
             return $"Fingerprint( #{Code:x8} )";
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is Fingerprint other)
+            {
+                return this.Code == other.Code;
+            }
+            return false;
+        }
+
+        public override readonly int GetHashCode()
+        {
+            return Code;
+        }
+
+        public static bool operator ==(Fingerprint left, Fingerprint right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Fingerprint left, Fingerprint right)
+        {
+            return !left.Equals(right);
+        }
+
+
+
         public static Fingerprint None => new(0);
 
 

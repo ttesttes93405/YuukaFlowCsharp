@@ -36,19 +36,15 @@ namespace YuukaFlow.Core
         {
             var flowNodes = _flowchart.FlowNodes;
 
-            var flowNodeQuery = flowNodes
-                .ToDictionary(node => node.Name, node => node);
-
-            var allFlowName = flowNodes.Select(node => node.Name).ToHashSet();
-            if (allFlowName.SetEquals(_implementations.Keys) == false)
-                throw new Exception($"[YuukaFlow] Flow({Name}) implementation not full match\n{nameof(allFlowName)}=[ {string.Join(", ", allFlowName)} ]\n{nameof(_implementations)}.Keys = [ {string.Join(", ", _implementations.Keys)} ]");
-
             if (_flowchart.EntryNodeName == null)
                 throw new NullReferenceException(nameof(_flowchart.EntryNodeName));
 
+            ValidateAllNodesHaveImplementations(_flowchart, _implementations);
+
+            var flowNodeQuery = flowNodes
+                .ToDictionary(node => node.Name, node => node);
+
             var currentNode = GetFlowNode(_flowchart.EntryNodeName);
-            if (currentNode == null)
-                throw new Exception($"[YuukaFlow] Flow({Name}) entry node {_flowchart.EntryNodeName} not found");
 
             OnFlowNodeChanged?.Invoke(null, default, currentNode);
 
@@ -68,8 +64,11 @@ namespace YuukaFlow.Core
                         break;
                     }
 
+                    if (outputPortId == null)
+                        throw new Exception($"[YuukaFlow] Flow({Name}) Output port is null for node {currentNode.Name}");
+
                     if (currentNode.TryGetNextNodeName(outputPortId, out var nextNodeName) == false)
-                        throw new Exception($"[YuukaFlow] Flow({Name}) Output port {outputPortId} not found for node {currentNode.Name}");
+                        throw new Exception($"[YuukaFlow] Flow({Name}) Output port {outputPortId} not found for node {currentNode.Name}, output ports: {string.Join(", ", currentNode.OutputPorts.Keys)}");
 
                     var prevNode = currentNode;
                     currentNode = GetFlowNode(nextNodeName);
@@ -89,7 +88,44 @@ namespace YuukaFlow.Core
                 if (flowNodeQuery.TryGetValue(name, out var node) == false)
                     throw new Exception($"[YuukaFlow] Flow({Name}) node {name} not found");
 
+                if (node == null)
+                    throw new Exception($"[YuukaFlow] Flow({Name}) node {name} is null");
+
                 return node;
+            }
+
+
+            static void ValidateAllNodesHaveImplementations(Flowchart<TName, TPortId> _flowchart, Dictionary<TName, FlowNodeImplementation<TContext, TPortId>> _implementations)
+            {
+                var allFlowName = _flowchart.FlowNodes.Select(node => node.Name).ToHashSet();
+                var allImplName = _implementations.Keys.ToHashSet();
+
+                if (allFlowName.SetEquals(allImplName) == true)
+                    return;
+
+                var sb = new System.Text.StringBuilder();
+
+                sb.AppendLine($"[YuukaFlow] Flow({_flowchart.Name}) implementation mismatch detected:");
+
+                var flowNameExcept = allFlowName.Except(allImplName);
+                if (flowNameExcept.Any())
+                {
+                    sb.AppendLine($"  - Missing implementations for nodes: {string.Join(", ", flowNameExcept)}");
+                }
+
+                var implNameExcept = allImplName.Except(allFlowName);
+                if (implNameExcept.Any())
+                {
+                    sb.AppendLine($"  - Extra implementations for non-existing nodes: {string.Join(", ", implNameExcept)}");
+                }
+
+                var allFlowNameList = string.Join(", ", _flowchart.FlowNodes.Select(node => node.Name).OrderBy(n => n));
+                var allImplementationNameList = string.Join(", ", _implementations.Keys.OrderBy(n => n));
+
+                sb.AppendLine($"  - NODES_IN_FLOWCHART = [ {allFlowNameList} ]");
+                sb.AppendLine($"  - IMPLEMENTATIONS    = [ {allImplementationNameList} ]");
+
+                throw new Exception(sb.ToString());
             }
         }
 

@@ -6,7 +6,7 @@ using static YuukaFlow.Core.Extensions.StringExtensions;
 namespace YuukaFlow.Core
 {
 
-    public record Flowchart<TName, TPortId> : IFingerprintProvider
+    public class Flowchart<TName, TPortId> : IFingerprintProvider
     {
         public string Name { get; init; }
         public TName EntryNodeName { get; init; }
@@ -37,6 +37,15 @@ namespace YuukaFlow.Core
         }
 
         public override int GetHashCode() => GetFingerprint().Code;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Flowchart<TName, TPortId> other)
+            {
+                return this.GetFingerprint().Equals(other.GetFingerprint());
+            }
+            return false;
+        }
 
         public Flowchart<TOtherName, TOtherPortId> ConvertTypes<TOtherName, TOtherPortId>(
             Func<TName, TOtherName> nameConverter,
