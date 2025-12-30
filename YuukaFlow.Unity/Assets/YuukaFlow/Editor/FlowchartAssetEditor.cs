@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static YuukaFlow.Unity.UIElementExtensions;
 
 namespace YuukaFlow.Unity
 {
@@ -22,10 +23,10 @@ namespace YuukaFlow.Unity
             container.style.flexDirection = FlexDirection.Column;
 
             if (icon == null)
-                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(GUIDs.YuukaFlowLogo));
+                icon = LoadIcon(GUIDs.YuukaFlowLogo);
 
             if (entryNodeIcon == null)
-                entryNodeIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(GUIDs.EntryNodeIcon));
+                entryNodeIcon = LoadIcon(GUIDs.EntryNodeIcon);
 
             var flowchartName = flowchartAsset.FlowchartName;
             var entryNode = flowchartAsset.PreviewEntryNode;
@@ -120,7 +121,30 @@ namespace YuukaFlow.Unity
                 var val = new Label(node.NodeName);
                 val.style.unityTextAlign = TextAnchor.MiddleLeft;
                 val.style.textOverflow = TextOverflow.Ellipsis;
+                val.style.paddingLeft = 2;
+                val.style.paddingRight = 2;
                 nodeContainer.Add(val);
+
+                if (node.HasOutPort)
+                {
+                    var portEl = CreateIcon(LoadIcon(GUIDs.CommitIcon), 12, 16, new Color(1, 1, 1, 0.3F));
+                    nodeContainer.Add(portEl);
+                }
+
+                nodeContainer.RegisterCallback<MouseEnterEvent>(evt =>
+                {
+                    nodeContainer.style.backgroundColor = new Color(1, 1, 1, 0.15F);
+                });
+
+                nodeContainer.RegisterCallback<MouseLeaveEvent>(evt =>
+                {
+                    nodeContainer.style.backgroundColor = new Color(1, 1, 1, 0.1F);
+                });
+                nodeContainer.RegisterCallback<MouseDownEvent>(evt =>
+                {
+                    // Copy the node name to clipboard on click
+                    EditorGUIUtility.systemCopyBuffer = node.NodeName;
+                });
 
                 return nodeContainer;
             }
@@ -143,6 +167,12 @@ namespace YuukaFlow.Unity
                 return listContainer;
             }
 
+            static Texture2D LoadIcon(string guid)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                return texture;
+            }
 
             static VisualElement CreateIcon(Texture2D icon, int size, int frameSize, Color color)
             {

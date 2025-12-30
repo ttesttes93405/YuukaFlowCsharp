@@ -11,6 +11,16 @@ namespace YuukaFlow.Unity
         public struct PreviewNode
         {
             public string NodeName;
+            public bool HasOutPort;
+
+            public static PreviewNode FromFlowNode(FlowNode<string, string> node)
+            {
+                return new PreviewNode
+                {
+                    NodeName = node.Name,
+                    HasOutPort = node.HasOutputPorts,
+                };
+            }
         }
 
         [SerializeField]
@@ -38,7 +48,7 @@ namespace YuukaFlow.Unity
             {
                 flowchartName = flowchart.Name;
                 previewEntryNode = new PreviewNode { NodeName = flowchart.EntryNodeName };
-                previewNodes = flowchart.FlowNodes.Select(n => new PreviewNode { NodeName = n.Name }).ToArray();
+                previewNodes = flowchart.FlowNodes.Select(PreviewNode.FromFlowNode).ToArray();
             }
         }
 
