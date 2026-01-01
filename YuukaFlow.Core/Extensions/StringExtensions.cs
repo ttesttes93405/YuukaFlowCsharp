@@ -86,6 +86,20 @@ namespace YuukaFlow.Core.Extensions
                 .ToString();
         }
 
+        public static string Repeat(this string str, int count)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative.");
+
+            StringBuilder sb = new StringBuilder(str.Length * count);
+            for (int i = 0; i < count; i++)
+            {
+                sb.Append(str);
+            }
+            return sb.ToString();
+        }
 
     }
 }
