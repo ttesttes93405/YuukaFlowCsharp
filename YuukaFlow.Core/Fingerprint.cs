@@ -14,7 +14,7 @@ namespace YuukaFlow.Core
 
         public override readonly string ToString()
         {
-            return $"Fingerprint( #{Code:x8} )";
+            return $"Fingerprint( {Code}#{Code:x8} )";
         }
 
         public override bool Equals(object obj)

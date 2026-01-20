@@ -8,6 +8,7 @@ YuukaFlow.Unity/Assets/*
 
 .editorconfig
 .[Pp]layground/
+.[Ss]pecs/
 .DS_Store
 
 */bin/

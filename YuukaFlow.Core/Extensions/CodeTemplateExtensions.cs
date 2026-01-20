@@ -1,7 +1,5 @@
 
 using System;
-using System.Linq;
-using System.Text;
 
 namespace YuukaFlow.Core.Extensions
 {
@@ -15,43 +13,27 @@ namespace YuukaFlow.Core.Extensions
                 Func<TPortId, string> portIdSerializer,
                 int indent = 0)
         {
-            const string INDENT_UNIT = "    ";
-            string baseIndent = INDENT_UNIT.Repeat(indent);
+            var builder = new IndentBuilder(indent);
 
-            bool isOutputPortEmpty = flowNode.OutputPorts.Count == 0;
+            builder.Append($"new({nameSerializer(flowNode.Name)}");
 
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder
-                .Append($"new({nameSerializer(flowNode.Name)}");
-
-            if (isOutputPortEmpty == false)
+            if (flowNode.OutputPorts.Count > 0)
             {
                 foreach (var (portId, toName) in flowNode.OutputPorts.Pairs)
                 {
-                    stringBuilder
+                    builder
                         .AppendLine(",")
-                        .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT)
-                        .Append('(')
-                        // .Append("portId: ")
-                        .Append(portIdSerializer(portId))
-                        .Append(", ")
-                        // .Append("targetNode: ")
-                        .Append(nameSerializer(toName))
-                        .Append(')');
+                        .Append(2, $"({portIdSerializer(portId)}, {nameSerializer(toName)})");
                 }
 
-                stringBuilder
+                builder
                     .AppendLine()
-                    .Append(baseIndent).Append(INDENT_UNIT);
+                    .Append(1, "");
             }
 
+            builder.Append(")");
 
-            stringBuilder
-                .Append(")");
-
-
-            return stringBuilder.ToString();
+            return builder.ToString();
         }
 
 
@@ -64,78 +46,45 @@ namespace YuukaFlow.Core.Extensions
                 string portIdTypeName,
                 int indent = 0)
         {
-            const string INDENT_UNIT = "    ";
-            string baseIndent = INDENT_UNIT.Repeat(indent);
+            var builder = new IndentBuilder(indent);
 
+            builder
+                .AppendLine(0, $"static Flowchart<{nameTypeName}, {portIdTypeName}> GetFlowchart()")
+                .AppendLine(0, "{");
 
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder
-                .Append(baseIndent).AppendLine($"static Flowchart<{nameTypeName}, {portIdTypeName}> GetFlowchart()")
-                .Append(baseIndent).AppendLine("{");
-
-            stringBuilder
-                .Append(baseIndent).Append(INDENT_UNIT).AppendLine($"return new(")
-                .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"entryNodeName: {nameSerializer(flowchart.EntryNodeName)},")
-                .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"flowNodes: new FlowNode<{nameTypeName}, {portIdTypeName}>[]")
-                .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine("{");
+            builder
+                .AppendLine(1, $"return new(")
+                .AppendLine(2, $"entryNodeName: {nameSerializer(flowchart.EntryNodeName)},")
+                .AppendLine(2, $"flowNodes: new FlowNode<{nameTypeName}, {portIdTypeName}>[]")
+                .AppendLine(2, "{");
 
             foreach (var node in flowchart.FlowNodes)
             {
-                var nodeName = node.Name;
-
-                stringBuilder
-                    .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"{node.ConvertToCode(nameSerializer, portIdSerializer, indent + 2)},");
+                builder.AppendLine(3, $"{node.ConvertToCode(nameSerializer, portIdSerializer, indent + 2)},");
             }
 
-            stringBuilder
-                .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine("}")
-                .Append(baseIndent).Append(INDENT_UNIT).Append(")");
-
+            builder
+                .AppendLine(2, "}")
+                .Append(1, ")");
 
             if (string.IsNullOrEmpty(flowchart.Name) == false)
             {
-                stringBuilder
+                builder
                     .AppendLine()
-                    .Append(baseIndent).Append(INDENT_UNIT).Append('{')
+                    .Append(1, "{")
                     .AppendLine()
-                    .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).Append($"Name = \"{flowchart.Name}\",")
+                    .Append(2, $"Name = \"{flowchart.Name}\",")
                     .AppendLine()
-                    .Append(baseIndent).Append(INDENT_UNIT).Append('}');
+                    .Append(1, "}");
             }
 
-            stringBuilder
-                .Append(baseIndent).AppendLine(";");
+            builder
+                .AppendLine(";")
+                .Append(0, "}");
 
-            stringBuilder
-                .Append(baseIndent).Append("}");
-
-            return stringBuilder.ToString();
+            return builder.ToString();
         }
 
-
-        public class TemplateFlowNode
-        {
-            public string Name { get; set; } = "--";
-            public TemplatePort[] OutputPorts { get; set; } = Array.Empty<TemplatePort>();
-
-            public class TemplatePort
-            {
-                public string PortId { get; set; } = "--";
-                public string TargetNode { get; set; } = "--";
-
-                public TemplatePort(string portId, string targetNode)
-                {
-                    PortId = portId;
-                    TargetNode = targetNode;
-                }
-            }
-
-            public override string ToString()
-            {
-                return $"TemplateFlowNode(Name={Name}, OutputPorts=[{string.Join(", ", OutputPorts.Select(p => $"(PortId={p.PortId}, TargetNode={p.TargetNode})"))}])";
-            }
-        }
 
         public static string ConvertToTemplateCode<TName, TPortId>(
             this Flowchart<TName, TPortId> flowchart,
@@ -149,34 +98,7 @@ namespace YuukaFlow.Core.Extensions
             if (flowchart == null)
                 throw new ArgumentNullException(nameof(flowchart));
 
-            var name = "Flowchart";
-
-            var asm = System.Reflection.Assembly.GetExecutingAssembly();
-            var resourceName = $"YuukaFlow.Core.Templates.{name}.scriban";
-
-            using var stream = asm.GetManifestResourceStream(resourceName)
-                ?? throw new InvalidOperationException($"Template not found: {name}");
-
-            using var reader = new System.IO.StreamReader(stream);
-            var template = reader.ReadToEnd();
-
-            var context = new Scriban.Runtime.ScriptObject()
-            {
-                ["EntryNodeName"] = flowchart.EntryNodeName,
-                ["FlowNodes"] = flowchart.FlowNodes.Select(node => new TemplateFlowNode
-                {
-                    Name = nameSerializer(node.Name),
-                    OutputPorts = node.OutputPorts.Pairs
-                        .Select(pair => new TemplateFlowNode.TemplatePort(portIdSerializer(pair.key), nameSerializer(pair.value)))
-                        .ToArray()
-                }).ToArray(),
-                ["TName"] = nameTypeName,
-                ["TPortId"] = portIdTypeName,
-            };
-            var templateContext = new Scriban.TemplateContext();
-            var parsedTemplate = Scriban.Template.Parse(template);
-            templateContext.PushGlobal(context);
-            return parsedTemplate.Render(templateContext);
+            throw new NotImplementedException();
         }
 
 
@@ -192,64 +114,49 @@ namespace YuukaFlow.Core.Extensions
             int indent = 0
         )
         {
-            const string INDENT_UNIT = "    ";
-            string baseIndent = INDENT_UNIT.Repeat(indent);
+            var builder = new IndentBuilder(indent);
 
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder
-                .Append(baseIndent).AppendLine($"static Dictionary<{nameTypeName}, FlowNodeImplementation<{contextTypeName}, {portIdTypeName}>> GetImplementations()")
-                .Append(baseIndent).AppendLine("{");
-
-            stringBuilder
-                .Append(baseIndent).Append(INDENT_UNIT).AppendLine($"return new()")
-                .Append(baseIndent).Append(INDENT_UNIT).AppendLine("{");
+            builder
+                .AppendLine(0, $"static Dictionary<{nameTypeName}, FlowNodeImplementation<{contextTypeName}, {portIdTypeName}>> GetImplementations()")
+                .AppendLine(0, "{")
+                .AppendLine(1, $"return new()")
+                .AppendLine(1, "{");
 
             foreach (var node in flowchart.FlowNodes)
             {
                 var nodeName = node.Name;
-
-                stringBuilder
-                    .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"[{nameSerializer(nodeName)}] = {implementationNameSerializer(nodeName)},");
+                builder.AppendLine(2, $"[{nameSerializer(nodeName)}] = {implementationNameSerializer(nodeName)},");
             }
 
-            stringBuilder
-                .Append(baseIndent).Append(INDENT_UNIT).AppendLine("};");
-
-
+            builder.AppendLine(1, "};");
 
             foreach (var node in flowchart.FlowNodes)
             {
                 var nodeName = node.Name;
 
-                stringBuilder
+                builder
                     .AppendLine()
-                    .Append(baseIndent).Append(INDENT_UNIT).AppendLine($"static async ValueTask<{portIdTypeName}> {implementationNameSerializer(nodeName)}({contextTypeName} context)")
-                    .Append(baseIndent).Append(INDENT_UNIT).AppendLine("{");
+                    .AppendLine(1, $"static async ValueTask<{portIdTypeName}> {implementationNameSerializer(nodeName)}({contextTypeName} context)")
+                    .AppendLine(1, "{");
 
                 if (node.OutputPorts.Count == 0)
                 {
-                    stringBuilder
-                        .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"return default;");
+                    builder.AppendLine(2, $"return default;");
                 }
                 else
                 {
                     foreach (var (portId, _) in node.OutputPorts.Pairs)
                     {
-                        stringBuilder
-                            .Append(baseIndent).Append(INDENT_UNIT).Append(INDENT_UNIT).AppendLine($"return {portIdSerializer(portId)};");
+                        builder.AppendLine(2, $"return {portIdSerializer(portId)};");
                     }
                 }
 
-                stringBuilder
-                    .Append(baseIndent).Append(INDENT_UNIT).AppendLine("}");
-
+                builder.AppendLine(1, "}");
             }
 
-            stringBuilder
-                .AppendLine("}");
+            builder.AppendLine("}");
 
-            return stringBuilder.ToString();
+            return builder.ToString();
         }
 
 

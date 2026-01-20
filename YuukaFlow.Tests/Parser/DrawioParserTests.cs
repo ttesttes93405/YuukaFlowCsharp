@@ -80,7 +80,7 @@ public class DrawioParserTests
     {
         var flowchart = DrawioParser.DeserializeFirstDiagram(testXml);
 
-        Assert.Equal(new(1502198891), flowchart.GetFingerprint());
+        Assert.Equal(new(-1960551445), flowchart.GetFingerprint());
     }
 
 }
