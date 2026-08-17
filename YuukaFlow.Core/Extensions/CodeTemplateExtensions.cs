@@ -100,6 +100,7 @@ namespace YuukaFlow.Core.Extensions
             var builder = new IndentBuilder(indent);
 
             builder
+                .AppendLine(0, $"[Fingerprint(\"{flowchart.GetFingerprint().Code:x8}\")]")
                 .AppendLine(0, $"static Dictionary<{nameTypeName}, FlowNodeImplementation<{contextTypeName}, {portIdTypeName}>> GetImplementations()")
                 .AppendLine(0, "{")
                 .AppendLine(1, $"return new()")
