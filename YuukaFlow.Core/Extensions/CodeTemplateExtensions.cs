@@ -86,23 +86,6 @@ namespace YuukaFlow.Core.Extensions
         }
 
 
-        public static string ConvertToTemplateCode<TName, TPortId>(
-            this Flowchart<TName, TPortId> flowchart,
-            Func<TName, string> nameSerializer,
-            Func<TPortId, string> portIdSerializer,
-            string nameTypeName,
-            string portIdTypeName,
-            int indent = 0
-        )
-        {
-            if (flowchart == null)
-                throw new ArgumentNullException(nameof(flowchart));
-
-            throw new NotImplementedException();
-        }
-
-
-
         public static string GetImplementationCodeTemplate<TName, TPortId>(
             this Flowchart<TName, TPortId> flowchart,
             Func<TName, string> nameSerializer,

@@ -8,7 +8,8 @@ namespace YuukaFlow.Core
         bool isEntryNodeNodeSet = false;
 
         private TName? entryNodeName;
-        readonly HashSet<TName> nodeNames = new();
+        readonly List<TName> nodeNames = new();
+        readonly HashSet<TName> nodeNameSet = new();
         readonly HashSet<(TName from, TPortId portId, TName to)> connections = new();
         readonly string flowchartName;
 
@@ -33,8 +34,9 @@ namespace YuukaFlow.Core
         {
             ThrowIfBuilt();
 
-            if (nodeNames.Contains(nodeName))
+            if (nodeNameSet.Contains(nodeName))
                 throw new InvalidOperationException($"Node with name {nodeName} already exists in the flowchart.");
+            nodeNameSet.Add(nodeName);
             nodeNames.Add(nodeName);
             return this;
         }

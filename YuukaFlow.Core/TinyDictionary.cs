@@ -7,8 +7,6 @@ namespace YuukaFlow.Core
 
     public readonly struct TinyDictionary<TKey, TValue> : IFingerprintProvider
     {
-        static readonly HashSet<TKey> checkSet = new();
-
         private readonly (TKey key, TValue value)[]? items;
 
         public TinyDictionary(params (TKey key, TValue value)[] items)
@@ -28,17 +26,15 @@ namespace YuukaFlow.Core
 
             static bool CheckKey((TKey key, TValue value)[] items)
             {
-                var seenKeys = checkSet;
+                var seenKeys = new HashSet<TKey>();
                 foreach (var (key, _) in items)
                 {
                     if (key == null)
                     {
-                        checkSet.Clear();
                         throw new System.ArgumentNullException("Key in TinyDictionary cannot be null.");
                     }
                     else if (seenKeys.Contains(key))
                     {
-                        checkSet.Clear();
                         return true;
                     }
                     else
@@ -46,7 +42,6 @@ namespace YuukaFlow.Core
                         seenKeys.Add(key);
                     }
                 }
-                checkSet.Clear();
                 return false;
             }
         }
