@@ -129,7 +129,7 @@ namespace YuukaFlow.Core
 
             var fingerprint = new Fingerprint(17);
 
-            foreach (var (key, value) in items.OrderBy(kv => kv.key))
+            foreach (var (key, value) in items.OrderBy(kv => Fingerprint.From(kv.key).Code))
             {
                 fingerprint = fingerprint
                     .Combine(Fingerprint.From(key))
